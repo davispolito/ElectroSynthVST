@@ -1,6 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-
+#include "sound_engine.h"
 //==============================================================================
 PluginProcessor::PluginProcessor()
      : AudioProcessor (BusesProperties()
@@ -88,13 +88,19 @@ void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    juce::ignoreUnused (sampleRate, samplesPerBlock);
+    engine_->prepareToPlay(sampleRate, samplesPerBlock);
+    engine_->processorGraph->setPlayConfigDetails (getMainBusNumInputChannels(),
+                                                                 getMainBusNumOutputChannels(),
+                                                                 sampleRate, samplesPerBlock);
+
+    //juce::ignoreUnused (sampleRate, samplesPerBlock);
 }
 
 void PluginProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
+    engine_->releaseResources();
 }
 
 bool PluginProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -143,11 +149,14 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
+
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelData = buffer.getWritePointer (channel);
+
         juce::ignoreUnused (channelData);
         // ..do something to the data...
+
     }
 }
 
@@ -183,4 +192,19 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new PluginProcessor();
+}
+
+const CriticalSection& PluginProcessor::getCriticalSection() {
+    return getCallbackLock();
+}
+
+void PluginProcessor::pauseProcessing(bool pause) {
+    suspendProcessing(pause);
+}
+
+SynthGuiInterface* PluginProcessor::getGuiInterface() {
+    AudioProcessorEditor* editor = getActiveEditor();
+    if (editor)
+        return dynamic_cast<SynthGuiInterface*>(editor);
+    return nullptr;
 }
