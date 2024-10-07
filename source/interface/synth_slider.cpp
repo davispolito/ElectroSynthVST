@@ -628,7 +628,7 @@ void SynthSlider::drawRotaryShadow(Graphics &g) {
       Colour transparent_shadow = shadow_color.withAlpha(0.0f);
       float shadow_radius = body_radius + shadow_width;
       ColourGradient shadow_gradient(shadow_color, center_x, center_y + shadow_offset,
-                                     transparent_shadow, center_x - shadow_radius, center_y + shadow_offset, true);
+          transparent_shadow, center_x - shadow_radius, center_y + shadow_offset, true);
       float shadow_start = std::max(0.0f, (body_radius - std::abs(shadow_offset))) / shadow_radius;
       shadow_gradient.addColour(shadow_start, shadow_color);
       shadow_gradient.addColour(1.0f - (1.0f - shadow_start) * 0.75f, shadow_color.withMultipliedAlpha(0.5625f));
@@ -639,9 +639,7 @@ void SynthSlider::drawRotaryShadow(Graphics &g) {
     }
 
     g.setColour(body);
-    //Rectangle<float> ellipse(center_x - body_radius, center_y - body_radius, 2.0f * body_radius, 2.0f * body_radius);
-      Rectangle<float> ellipse(0, 0, 300,300);
-
+    Rectangle<float> ellipse(center_x - body_radius, center_y - body_radius, 2.0f * body_radius, 2.0f * body_radius);
     g.fillEllipse(ellipse);
 
     g.setColour(findColour(Skin::kRotaryBodyBorder, true));
@@ -652,7 +650,7 @@ void SynthSlider::drawRotaryShadow(Graphics &g) {
   Path shadow_path;
 
   shadow_outline.addCentredArc(center_x, center_y, radius, radius,
-                               0, -kRotaryAngle, kRotaryAngle, true);
+      0, -kRotaryAngle, kRotaryAngle, true);
   shadow_stroke.createStrokedPath(shadow_path, shadow_outline);
   if ((!findColour(Skin::kRotaryArcUnselected, true).isTransparent() && isActive()) ||
       (!findColour(Skin::kRotaryArcUnselectedDisabled, true).isTransparent() && !isActive())) {

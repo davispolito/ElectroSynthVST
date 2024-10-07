@@ -1,7 +1,3 @@
-[submodule "JUCE"]
-	path = JUCE
-	url = https://github.com/juce-framework/JUCE/
-	branch = develop
 [submodule "modules/melatonin_inspector"]
 	path = modules/melatonin_inspector
 	url = https://github.com/sudara/melatonin_inspector.git
@@ -10,9 +6,16 @@
 	path = cmake
 	url = https://github.com/sudara/cmake-includes.git
 	branch = main
-[submodule "third_party/chowdsp_utils"]
-	path = third_party/chowdsp_utils
-	url = git@github.com:Chowdhury-DSP/chowdsp_utils.git
 [submodule "third_party/tracktion_engine"]
 	path = third_party/tracktion_engine
 	url = git@github.com:Tracktion/tracktion_engine.git
+[submodule "third_party/leaf_modules"]
+	path = third_party/leaf_modules
+	url = git@github.com:JoshuaWarner22/MappingandProcessors.git
+	branch = cpp_atomic
+[submodule "JUCE"]
+	path = JUCE
+	url = git@github.com:davispolito/JUCELeaf.git
+[submodule "third_party/chowdsp_utils"]
+	path = third_party/chowdsp_utils
+	url = git@github.com:davispolito/chowdsp_utilsLEAF.git

@@ -22,7 +22,10 @@
 #include <set>
 #include <string>
 #include "midi_manager.h"
+#include "leaf-config.h"
+#include "leaf.h"
 
+#include "OscillatorModuleProcessor.h"
 
 class SynthGuiInterface;
 
@@ -129,7 +132,11 @@ class SynthBase : public MidiManager::Listener, public juce::ValueTree::Listener
     void processKeyboardEvents(juce::MidiBuffer& buffer, int num_samples);
     //void processModulationChanges();
     void updateMemoryOutput(int samples, const float* audio);
+    LEAF leaf;
+    OscillatorModuleProcessor* osc;
+    tOscModule * module;
 
+    char dummy_memory[60000];
     std::unique_ptr<electrosynth::SoundEngine> engine_;
     std::unique_ptr<MidiManager> midi_manager_;
     std::unique_ptr<juce::MidiKeyboardState> keyboard_state_;

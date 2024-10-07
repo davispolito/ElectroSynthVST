@@ -31,9 +31,14 @@ SynthBase::SynthBase() : expired_(false) {
 
   engine_ = std::make_unique<electrosynth::SoundEngine>();
 
+  LEAF_init(&leaf, 44100.0f, dummy_memory, 60000, [](){return (float)rand()/RAND_MAX;});
+
+  float params[OscNumParams] = {0.0f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+
+  tOscModule_init(reinterpret_cast<void** const> (&module), params, 0, &leaf);
 
 
-
+  osc = new OscillatorModuleProcessor(*module);
 
 
   keyboard_state_ = std::make_unique<MidiKeyboardState>();

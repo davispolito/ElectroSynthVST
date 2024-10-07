@@ -819,4 +819,3 @@ void SynthSection::showPopupSelector(Component* source, juce::Point<int> positio
 //}
 
 
-

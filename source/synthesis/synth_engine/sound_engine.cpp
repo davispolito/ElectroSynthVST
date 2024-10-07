@@ -89,8 +89,7 @@ namespace electrosynth {
   {
     //VITAL_ASSERT(num_samples <= output()->buffer_size);
     juce::FloatVectorOperations::disableDenormalisedNumberSupport();
-    //voice_handler_->setLegato(legato_->value());
-    // ProcessorRouter::process(num_samples);
+
     juce::MidiBuffer midimessages;
     for(auto proc : processors)
     {
@@ -98,11 +97,7 @@ namespace electrosynth {
     }
     if (getNumActiveVoices() == 0)
     {
-      //      CircularQueue<ModulationConnectionProcessor*>& connections = voice_handler_->enabledModulationConnection();
-      //      for (ModulationConnectionProcessor* modulation : connections) {
-      //        if (!modulation->isInputSourcePolyphonic())
-      //          modulation->process(num_samples);
-      //      }
+
     }
   }
 

@@ -93,11 +93,12 @@ class SynthApplication : public JUCEApplication {
             constrainer_.setMinimumSize(electrosynth::kMinWindowWidth, electrosynth::kMinWindowHeight);
             constrainer_.setBorder(getPeer()->getFrameSize());
             float ratio = (1.0f * electrosynth::kDefaultWindowWidth) / electrosynth::kDefaultWindowHeight;
-
+            constrainer_.setMaximumSize(electrosynth::kDefaultWindowWidth, electrosynth::kDefaultWindowHeight);
             constrainer_.setFixedAspectRatio(ratio);
             setConstrainer(&constrainer_);
 
             centreWithSize(getWidth(), getHeight());
+            setSize(electrosynth::kDefaultWindowWidth, electrosynth::kDefaultWindowHeight);
             setVisible(visible);
             triggerAsyncUpdate();
           }
@@ -125,11 +126,16 @@ class SynthApplication : public JUCEApplication {
 
 
 
-        //empty resized function fixes flickering
+//        //empty resized function fixes flickering
 //        void resized() override
 //        {
-//          //if (editor_ != nullptr)
-//          //  editor_->setBounds(getBounds());
+//          if (editor_ != nullptr)
+//          {
+//            const auto scaleFactor = static_cast<float> (getWidth()) / electrosynth::kDefaultWindowWidth;
+//            editor_->setTransform (AffineTransform::scale (scaleFactor));
+//            editor_->setBounds(0, 0, electrosynth::kDefaultWindowWidth, electrosynth::kDefaultWindowHeight);
+//          }
+//
 //        }
         void getAllCommands(Array<CommandID>& commands) override {
           commands.add(kSave);

@@ -52,6 +52,8 @@ add_subdirectory(JUCE)
 # This adds the melatonin inspector module
 add_subdirectory (modules/melatonin_inspector)
 add_subdirectory(third_party/chowdsp_utils)
+option(MODULE_ENABLE_TESTS "Enable tests modules" OFF)
+add_subdirectory(third_party/leaf_modules)
 # See `docs/CMake API.md` in the JUCE repo for all config options
 juce_add_plugin("${PROJECT_NAME}"
     # Icons for the standalone app
@@ -150,8 +152,9 @@ target_link_libraries(SharedCode
         chowdsp::chowdsp_dsp_data_structures
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
-    juce::juce_recommended_warning_flags)
-
+    juce::juce_recommended_warning_flags
+    LEAF_modules)
+target_compile_definitions(LEAF_modules PRIVATE LEAF_USE_DYNAMIC_ALLOCATION)
 # Link the JUCE plugin targets our SharedCode target
 target_link_libraries("${PROJECT_NAME}" PRIVATE SharedCode)
 
