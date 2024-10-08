@@ -5,9 +5,9 @@
 #ifndef ELECTROSYNTH__PLUGINBASE_H
 #define ELECTROSYNTH__PLUGINBASE_H
 #pragma once
-
+#include <chowdsp_plugin_base/chowdsp_plugin_base.h>
 #include <chowdsp_parameters/chowdsp_parameters.h>
-#include "chowdsp_plugin_base/chowdsp_plugin_base.h"
+
 #if JUCE_MODULE_AVAILABLE_chowdsp_presets
     #include <chowdsp_presets/chowdsp_presets.h>
 #endif

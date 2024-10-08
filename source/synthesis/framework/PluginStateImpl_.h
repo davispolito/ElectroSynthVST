@@ -38,7 +38,7 @@ struct LEAFParams : public chowdsp::ParamHolder
  * @tparam NonParameterState    Struct containing all of the plugin's non-parameter state as StateValue objects.
  * @tparam Serializer           A type that implements chowdsp::BaseSerializer (JSONSerializer by default)
  */
-    template <typename ParameterState, typename Module,  typename NonParameterState = chowdsp::NonParamState, typename Serializer = chowdsp::JSONSerializer>
+    template <typename ParameterState, typename Module,  typename NonParameterState = chowdsp::NonParamState, typename Serializer = chowdsp::XMLSerializer>
 class PluginStateImpl_ : public chowdsp::PluginState
     {
         static_assert (std::is_base_of_v<LEAFParams<Module>, ParameterState>, "ParameterState must be a chowdsp::ParamHolder!");
@@ -122,14 +122,7 @@ class PluginStateImpl_ : public chowdsp::PluginState
     template <typename>
     typename Serializer::SerializedType PluginStateImpl_<ParameterState, Module, NonParameterState, Serializer>::serialize (const PluginStateImpl_& object)
     {
-        auto serial = Serializer::createBaseElement();
-
-#if defined JucePlugin_VersionString
-        Serializer::addChildElement (serial, Serializer::template serialize<Serializer> (chowdsp::currentPluginVersion));
-#endif
-
-        Serializer::addChildElement (serial, Serializer::template serialize<Serializer, chowdsp::NonParamState> (object.nonParams));
-        Serializer::addChildElement (serial, Serializer::template serialize<Serializer, chowdsp::ParamHolder> (object.params));
+        auto serial = Serializer::template serialize<Serializer, chowdsp::ParamHolder> (object.params);
         return serial;
     }
 

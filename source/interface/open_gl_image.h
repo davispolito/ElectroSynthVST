@@ -16,32 +16,33 @@
 
 #pragma once
 
-
-
 #include "open_gl_component.h"
 
 #include <mutex>
 
-class OpenGlImage {
+class OpenGlImage
+{
 public:
     OpenGlImage();
     virtual ~OpenGlImage();
 
-    void init(OpenGlWrapper& open_gl);
-    void drawImage(OpenGlWrapper& open_gl);
-    void destroy(OpenGlWrapper& open_gl);
+    void init(OpenGlWrapper &open_gl);
+    void drawImage(OpenGlWrapper &open_gl);
+    void destroy(OpenGlWrapper &open_gl);
 
     void lock() { mutex_.lock(); }
     void unlock() { mutex_.unlock(); }
 
-    void setOwnImage(juce::Image& image) {
+    void setOwnImage(juce::Image &image)
+    {
         mutex_.lock();
         owned_image_ = std::make_unique<juce::Image>(image);
         setImage(owned_image_.get());
         mutex_.unlock();
     }
 
-    void setImage(juce::Image* image) {
+    void setImage(juce::Image *image)
+    {
         image_ = image;
         image_width_ = image->getWidth();
         image_height_ = image->getHeight();
@@ -49,7 +50,8 @@ public:
 
     void setColor(juce::Colour color) { color_ = color; }
 
-    inline void setPosition(float x, float y, int index) {
+    inline void setPosition(float x, float y, int index)
+    {
         position_vertices_[index] = x;
         position_vertices_[index + 1] = y;
         dirty_ = true;
@@ -65,12 +67,13 @@ public:
     void setAdditive(bool additive) { additive_ = additive; }
     void setUseAlpha(bool use_alpha) { use_alpha_ = use_alpha; }
     void setScissor(bool scissor) { scissor_ = scissor; }
+    juce::OpenGLShaderProgram *shader() { return image_shader_; }
 
 private:
     std::mutex mutex_;
     bool dirty_;
 
-    juce::Image* image_;
+    juce::Image *image_;
     int image_width_;
     int image_height_;
     std::unique_ptr<juce::Image> owned_image_;
@@ -81,7 +84,7 @@ private:
     bool use_alpha_;
     bool scissor_;
 
-    juce::OpenGLShaderProgram* image_shader_;
+    juce::OpenGLShaderProgram *image_shader_;
     std::unique_ptr<juce::OpenGLShaderProgram::Uniform> image_color_;
     std::unique_ptr<juce::OpenGLShaderProgram::Attribute> image_position_;
     std::unique_ptr<juce::OpenGLShaderProgram::Attribute> texture_coordinates_;
@@ -93,5 +96,3 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OpenGlImage)
 };
-
-

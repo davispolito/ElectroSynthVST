@@ -18,78 +18,50 @@
 
 namespace electrosynth {
 
-  constexpr float kPcmScale = 32767.0f;
-  constexpr float kComplexAmplitudePcmScale = 50.0f;
-  constexpr float kComplexPhasePcmScale = 10000.0f;
+     juce::String getMidiMessageDescription (const juce::MidiMessage& m)
+    {
+      if (m.isNoteOn())           return "Note on "          + juce::MidiMessage::getMidiNoteName (m.getNoteNumber(), true, true, 3);
+      if (m.isNoteOff())          return "Note off "         + juce::MidiMessage::getMidiNoteName (m.getNoteNumber(), true, true, 3);
+      if (m.isProgramChange())    return "Program change "   + juce::String (m.getProgramChangeNumber());
+      if (m.isPitchWheel())       return "Pitch wheel "      + juce::String (m.getPitchWheelValue());
+      if (m.isAftertouch())       return "After touch "      + juce::MidiMessage::getMidiNoteName (m.getNoteNumber(), true, true, 3) +  ": " + juce::String (m.getAfterTouchValue());
+      if (m.isChannelPressure())  return "Channel pressure " + juce::String (m.getChannelPressureValue());
+      if (m.isAllNotesOff())      return "All notes off";
+      if (m.isAllSoundOff())      return "All sound off";
+      if (m.isMetaEvent())        return "Meta event";
 
-  namespace utils {
-    int RandomGenerator::next_seed_ = 0;
+      if (m.isController())
+      {
+        juce::String name (juce::MidiMessage::getControllerName (m.getControllerNumber()));
 
-    float encodeOrderToFloat(int* order, int size) {
-      // Max array size you can encode in 32 bits.
-      ELECTROSYNTH_ASSERT(size <= kMaxOrderLength);
+        if (name.isEmpty())
+          name = "[" + juce::String (m.getControllerNumber()) + "]";
 
-      unsigned int code = 0;
-      for (int i = 1; i < size; ++i) {
-
-        int index = 0;
-        for (int j = 0; j < i; ++j)
-          index += order[i] < order[j];
-
-        code *= i + 1;
-        code += index;
+        return "Controller " + name + ": " + juce::String (m.getControllerValue());
       }
 
-      return code;
+      return juce::String::toHexString (m.getRawData(), m.getRawDataSize());
+    }
+     juce::String printMidi(juce::MidiMessage& message, const juce::String& source)
+    {
+
+      auto time = message.getTimeStamp(); //- startTime;
+
+      auto hours   = ((int) (time / 3600.0)) % 24;
+      auto minutes = ((int) (time / 60.0)) % 60;
+      auto seconds = ((int) time) % 60;
+      auto millis  = ((int) (time * 1000.0)) % 1000;
+
+      auto timecode = juce::String::formatted ("%02d:%02d:%02d.%03d",
+          hours,
+          minutes,
+          seconds,
+          millis);
+
+      auto description = getMidiMessageDescription (message);
+
+      return juce::String(timecode + "  -  " + description + " (" + source + ")"); // [7]
     }
 
-    void decodeFloatToOrder(int* order, float float_code, int size) {
-      // Max array size you can encode in 32 bits.
-      ELECTROSYNTH_ASSERT(size <= kMaxOrderLength);
-
-      int code = float_code;
-      for (int i = 0; i < size; ++i)
-        order[i] = i;
-
-      for (int i = 0; i < size; ++i) {
-        int remaining = size - i;
-        int index = remaining - 1;
-        int inversions = code % remaining;
-        code /= remaining;
-
-        int placement = order[index - inversions];
-        for (int j = index - inversions; j < index; ++j)
-          order[j] = order[j + 1];
-
-        order[index] = placement;
-      }
-    }
-
-    void floatToPcmData(int16_t* pcm_data, const float* float_data, int size) {
-      for (int i = 0; i < size; ++i)
-        pcm_data[i] = utils::clamp(float_data[i] * kPcmScale, -kPcmScale, kPcmScale);
-    }
-
-    void complexToPcmData(int16_t* pcm_data, const std::complex<float>* complex_data, int size) {
-      for (int i = 0; i < size / 2; ++i) {
-        float amp = std::abs(complex_data[i]);
-        float phase = std::arg(complex_data[i]);
-        pcm_data[i * 2] = utils::clamp(amp * kComplexAmplitudePcmScale, -kPcmScale, kPcmScale);
-        pcm_data[i * 2 + 1] = utils::clamp(phase * kComplexPhasePcmScale, -kPcmScale, kPcmScale);
-      }
-    }
-
-    void pcmToFloatData(float* float_data, const int16_t* pcm_data, int size) {
-      for (int i = 0; i < size; ++i)
-        float_data[i] = pcm_data[i] * (1.0f / kPcmScale);
-    }
-
-    void pcmToComplexData(std::complex<float>* complex_data, const int16_t* pcm_data, int size) {
-      for (int i = 0; i < size / 2; ++i) {
-        float amp = pcm_data[i * 2] * (1.0f / kComplexAmplitudePcmScale);
-        float phase = pcm_data[i * 2 + 1] * (1.0f / kComplexPhasePcmScale);
-        complex_data[i] = std::polar(amp, phase);
-      }
-    }
   } // namespace utils
 } // namespace vital

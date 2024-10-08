@@ -5,7 +5,6 @@
 #ifndef ELECTROSYNTH_OSCILLATORMODULEPROCESSOR_H
 #define ELECTROSYNTH_OSCILLATORMODULEPROCESSOR_H
 #include "SimpleOscModule.h"
-#include <chowdsp_plugin_state/chowdsp_plugin_state.h>
 #include "_PluginBase.h"
 #include "PluginStateImpl_.h"
 namespace electrosynth{
@@ -36,7 +35,7 @@ struct OscillatorParams : public LEAFParams<tOscModule >
 {
     OscillatorParams(tOscModule _module) : LEAFParams<tOscModule>(_module)
     {
-
+       add(harmonic);
     }
     chowdsp::FloatParameter::Ptr harmonic {
         juce::ParameterID{"harmonic" , 100},
