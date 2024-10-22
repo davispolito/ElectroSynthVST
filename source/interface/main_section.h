@@ -5,8 +5,7 @@
 #ifndef ELECTROSYNTH2_MAIN_SECTION_H
 #define ELECTROSYNTH2_MAIN_SECTION_H
 #include "synth_section.h"
-
-
+#include "sound_generator_section.h"
 class MainSection : public SynthSection
 {
 public:
@@ -32,7 +31,7 @@ public:
 private:
     juce::ValueTree v;
     juce::UndoManager &um;
-
+    std::unique_ptr<ModulesInterface> modules_interface;
 
     std::vector<Listener*> listeners_;
 

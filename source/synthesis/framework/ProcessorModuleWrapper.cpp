@@ -5,7 +5,7 @@
 #include "ProcessorModuleWrapper.h"
 
 template <typename ParameterState, typename nonParameterState>
-ProcessorModuleWrapper<ParameterState, nonParameterState>::ProcessorModuleWrapper (LEAF* leaf, Processor* proc)
+ProcessorModuleWrapper<ParameterState, nonParameterState>::ProcessorModuleWrapper (LEAF* leaf, leaf::Processor* proc)
 :leaf(leaf), proc(proc)
 {
 }

@@ -53,7 +53,7 @@ public:
 
   void setNumQuads(int num_quads)
   {
-    ELECTROSYNTH_ASSERT(num_quads <= max_quads_);
+    _ASSERT(num_quads <= max_quads_);
     num_quads_ = num_quads;
     dirty_ = true;
   }
@@ -135,7 +135,7 @@ public:
 
   void setRotatedCoordinates(int i, float x, float y, float w, float h)
   {
-    ELECTROSYNTH_ASSERT(i < max_quads_);
+    _ASSERT(i < max_quads_);
     int index = i * kNumFloatsPerQuad;
 
     data_[index + 4] = x;
@@ -150,7 +150,7 @@ public:
 
   void setCoordinates(int i, float x, float y, float w, float h)
   {
-    ELECTROSYNTH_ASSERT(i < max_quads_);
+    _ASSERT(i < max_quads_);
     int index = i * kNumFloatsPerQuad;
 
     data_[index + 4] = x;
@@ -165,7 +165,7 @@ public:
 
   void setShaderValue(int i, float shader_value, int value_index = 0)
   {
-    ELECTROSYNTH_ASSERT(i < max_quads_);
+    _ASSERT(i < max_quads_);
     int index = i * kNumFloatsPerQuad + 6 + value_index;
     data_[index] = shader_value;
     data_[kNumFloatsPerVertex + index] = shader_value;
@@ -192,7 +192,7 @@ public:
 
   void setQuadHorizontal(int i, float x, float w)
   {
-    ELECTROSYNTH_ASSERT(i < max_quads_);
+    _ASSERT(i < max_quads_);
     int index = i * kNumFloatsPerQuad;
     data_[index] = x;
     data_[kNumFloatsPerVertex + index] = x;
@@ -204,7 +204,7 @@ public:
 
   void setQuadVertical(int i, float y, float h)
   {
-    ELECTROSYNTH_ASSERT(i < max_quads_);
+    _ASSERT(i < max_quads_);
     int index = i * kNumFloatsPerQuad;
     data_[index + 1] = y;
     data_[kNumFloatsPerVertex + index + 1] = y + h;
@@ -216,7 +216,7 @@ public:
 
   void setQuad(int i, float x, float y, float w, float h)
   {
-    ELECTROSYNTH_ASSERT(i < max_quads_);
+    _ASSERT(i < max_quads_);
     int index = i * kNumFloatsPerQuad;
     data_[index] = x;
     data_[index + 1] = y;

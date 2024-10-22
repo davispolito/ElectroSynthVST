@@ -41,47 +41,59 @@ class MidiMessageCollector {
 };
 
 #endif
+#include "Identifiers.h"
+#include <juce_data_structures/juce_data_structures.h>
+#include "tracktion_engine.h"
 
 class SynthBase;
 
 namespace electrosynth {
-  class SoundEngine;
-  struct ValueDetails;
-
+    class SoundEngine;
+    struct ValueDetails;
+    struct MidiDeviceWrapper {
+        MidiDeviceWrapper(const juce::ValueTree &v) : state(v) {
+            identifier.referTo(state,IDs::midiDeviceId, nullptr);
+        }
+        juce::ValueTree state;
+        juce::CachedValue<juce::String> identifier;
+    };
 } // namespace electrosynth
 using namespace juce;
+namespace electrosynth
+{
 
-class MidiManager : public MidiInputCallback {
-  public:
+}
+class MidiManager : public MidiInputCallback, public tracktion::engine::ValueTreeObjectList<electrosynth::MidiDeviceWrapper> {
+public:
     typedef std::map<int, std::map<std::string, const electrosynth::ValueDetails*>> midi_map;
 
     enum MidiMainType {
-      kNoteOff = 0x80,
-      kNoteOn = 0x90,
-      kAftertouch = 0xa0,
-      kController = 0xb0,
-      kProgramChange = 0xc0,
-      kChannelPressure = 0xd0,
-      kPitchWheel = 0xe0,
+        kNoteOff = 0x80,
+        kNoteOn = 0x90,
+        kAftertouch = 0xa0,
+        kController = 0xb0,
+        kProgramChange = 0xc0,
+        kChannelPressure = 0xd0,
+        kPitchWheel = 0xe0,
     };
 
     enum MidiSecondaryType {
-      kBankSelect = 0x00,
-      kModWheel = 0x01,
-      kFolderSelect = 0x20,
-      kSustainPedal = 0x40,
-      kSostenutoPedal = 0x42,
-      kSoftPedalOn = 0x43,
-      kSlide = 0x4a,
-      kLsbPressure = 0x66,
-      kLsbSlide = 0x6a,
-      kAllSoundsOff = 0x78,
-      kAllControllersOff = 0x79,
-      kAllNotesOff = 0x7b,
+        kBankSelect = 0x00,
+        kModWheel = 0x01,
+        kFolderSelect = 0x20,
+        kSustainPedal = 0x40,
+        kSostenutoPedal = 0x42,
+        kSoftPedalOn = 0x43,
+        kSlide = 0x4a,
+        kLsbPressure = 0x66,
+        kLsbSlide = 0x6a,
+        kAllSoundsOff = 0x78,
+        kAllControllersOff = 0x79,
+        kAllNotesOff = 0x7b,
     };
 
     class Listener {
-      public:
+    public:
         virtual ~Listener() { }
         virtual void valueChangedThroughMidi(const std::string& name, float value) = 0;
         virtual void pitchWheelMidiChanged(float value) = 0;
@@ -89,10 +101,32 @@ class MidiManager : public MidiInputCallback {
         virtual void presetChangedThroughMidi(juce::File preset) = 0;
     };
 
-    MidiManager( juce::MidiKeyboardState* keyboard_state,
-                 Listener* listener = nullptr);
+    MidiManager( juce::MidiKeyboardState* keyboard_state, AudioDeviceManager *manager, const ValueTree &v={},
+        Listener* listener = nullptr);
     virtual ~MidiManager() override;
-
+    electrosynth::MidiDeviceWrapper* createNewObject(const juce::ValueTree& v) override
+    {
+        return new electrosynth::MidiDeviceWrapper(v);
+    }
+    void deleteObject (electrosynth::MidiDeviceWrapper* at) override
+    {
+        manager->removeMidiInputDeviceCallback(at->identifier, this);
+    }
+    void newObjectAdded (electrosynth::MidiDeviceWrapper* obj) override
+    {
+        manager->addMidiInputDeviceCallback(obj->identifier, this);
+    }
+    void objectRemoved (electrosynth::MidiDeviceWrapper*) override     { }//resized(); }
+    void objectOrderChanged() override              { }//resized(); }
+    // void valueTreeParentChanged (juce::ValueTree&) override;
+    //void valueTreeRedirected (juce::ValueTree&) override ;
+    void valueTreePropertyChanged (juce::ValueTree& v, const juce::Identifier& i) override {
+        tracktion::engine::ValueTreeObjectList<electrosynth::MidiDeviceWrapper>::valueTreePropertyChanged(v, i);
+    }
+    bool isSuitableType (const juce::ValueTree& v) const override
+    {
+        return v.hasType (IDs::midiInput);
+    }
     void armMidiLearn(std::string name);
     void cancelMidiLearn();
     void clearMidiLearn(const std::string& name);
@@ -131,25 +165,24 @@ class MidiManager : public MidiInputCallback {
     void handleIncomingMidiMessage(MidiInput *source, const juce::MidiMessage &midi_message) override;
 
     struct PresetLoadedCallback : public juce::CallbackMessage {
-      PresetLoadedCallback(Listener* lis, juce::File pre) : listener(lis), preset(std::move(pre)) { }
+        PresetLoadedCallback(Listener* lis, juce::File pre) : listener(lis), preset(std::move(pre)) { }
 
-      void messageCallback() override {
-        if (listener)
-          listener->presetChangedThroughMidi(preset);
-      }
+        void messageCallback() override {
+            if (listener)
+                listener->presetChangedThroughMidi(preset);
+        }
 
-      Listener* listener;
-      juce::File preset;
+        Listener* listener;
+        juce::File preset;
     };
     juce::MidiMessageCollector midi_collector_;
-    std::vector<String> enabledMidiInputs;
+    AudioDeviceManager *manager;
 
-
-  protected:
+protected:
     void readMpeMessage(const juce::MidiMessage& message);
 
-//    SynthBase* synth_;
-//    electrosynth::SoundEngine* engine_;
+    //    SynthBase* synth_;
+    //    electrosynth::SoundEngine* engine_;
     juce::MidiKeyboardState* keyboard_state_;
 
 

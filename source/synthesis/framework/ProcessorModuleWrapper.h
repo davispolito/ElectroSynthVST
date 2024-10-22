@@ -18,7 +18,7 @@ struct ParamsPointer : public chowdsp::ParamHolder
 template<typename ParameterState,typename nonParameterState>
 class ProcessorModuleWrapper : public chowdsp::PluginBase<chowdsp::PluginStateImpl<ParameterState, nonParameterState>>
 {
-    ProcessorModuleWrapper(LEAF* leaf, Processor* proc);
+    ProcessorModuleWrapper(LEAF* leaf, leaf::Processor* proc);
 
 
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -28,7 +28,7 @@ class ProcessorModuleWrapper : public chowdsp::PluginBase<chowdsp::PluginStateIm
     juce::AudioProcessorEditor* createEditor() override;
 protected :
     LEAF* leaf;
-    Processor* proc;
+    leaf::Processor* proc;
 private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ProcessorModuleWrapper)

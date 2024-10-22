@@ -55,6 +55,7 @@ class SynthGuiInterface {
     void externalPresetLoaded(File preset);
     void setGuiSize(float scale);
     FullInterface* getGui() { return gui_.get(); }
+    LEAF* getLEAF();
 
   protected:
     SynthBase* synth_;

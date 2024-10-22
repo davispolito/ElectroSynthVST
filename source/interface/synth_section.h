@@ -334,15 +334,15 @@ class SynthSection : public Component, public Slider::Listener,
     virtual void setSkinValues(const Skin& skin, bool top_level);
     void setSkinValues(std::map<Skin::ValueId, float> values) { value_lookup_ = std::move(values); }
     void setSkinOverride(Skin::SectionOverride skin_override) { skin_override_ = skin_override; }
+    void addSlider(SynthSlider* slider, bool show = true, bool listen = true);
   protected:
     void setSliderHasHzAlternateDisplay(SynthSlider* slider);
     void setSidewaysHeading(bool sideways) { sideways_heading_ = sideways; }
     void addToggleButton(ToggleButton* button, bool show);
     void addButton(OpenGlToggleButton* button, bool show = true);
     void addButton(OpenGlShapeButton* button, bool show = true);
-    void addSlider(SynthSlider* slider, bool show = true, bool listen = true);
     void addOpenGlComponent(std::shared_ptr<OpenGlComponent> open_gl_component, bool to_beginning = false, bool makeVisible = true);
-
+    float getKnobSectionHeight();
     void addBackgroundComponent(OpenGlBackground* open_gl_component, bool to_beginning = false);
     void setActivator(SynthButton* activator);
     void createOffOverlay();

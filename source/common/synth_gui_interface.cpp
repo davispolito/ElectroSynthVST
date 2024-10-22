@@ -78,6 +78,8 @@ void SynthGuiInterface::updateGuiControl(const std::string& name, float value) {
 //  gui_->setValue(name, value, NotificationType::dontSendNotification);
 }
 
+LEAF* SynthGuiInterface::getLEAF()
+{return synth_->getLeaf();}
 //float SynthGuiInterface::getControlValue(const std::string& name) {
 //  return synth_->getControls()[name]->value();
 //}

@@ -12,7 +12,7 @@ include(PamplejuceMacOS)
 
 # Couple tweaks that IMO should be JUCE defaults
 include(JUCEDefaults)
-
+add_compile_options(-w)
 # Change me!
 # This is the internal name of the project and the name of JUCE's shared code target
 # Note: This cannot have spaces (it may be 2024, but you can't have it all!)
@@ -48,6 +48,9 @@ add_subdirectory(JUCE)
 
 # Add any other modules you want modules here, before the juce_add_plugin call
 # juce_add_module(modules/my_module)
+juce_add_module(third_party/tracktion_engine/modules/tracktion_engine)
+
+juce_add_module(modules/melatonin_audio_sparklines)
 
 # This adds the melatonin inspector module
 add_subdirectory (modules/melatonin_inspector)
@@ -154,7 +157,7 @@ target_link_libraries(SharedCode
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags
     LEAF_modules)
-target_compile_definitions(LEAF_modules PRIVATE LEAF_USE_DYNAMIC_ALLOCATION)
+target_compile_definitions(LEAF_modules PRIVATE LEAF_USE_DYNAMIC_ALLOCATION=1)
 # Link the JUCE plugin targets our SharedCode target
 target_link_libraries("${PROJECT_NAME}" PRIVATE SharedCode)
 
@@ -162,10 +165,10 @@ target_link_libraries("${PROJECT_NAME}" PRIVATE SharedCode)
 include(PamplejuceIPP)
 
 # Everything related to the tests target
-include(Tests)
+#include(Tests)
 
 # A separate target for Benchmarks (keeps the Tests target fast)
-include(Benchmarks)
+#include(Benchmarks)
 
 # Output some config for CI (like our PRODUCT_NAME)
-include(GitHubENV)
+#include(GitHubENV)

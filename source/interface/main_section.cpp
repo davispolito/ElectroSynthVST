@@ -1,14 +1,14 @@
 //
 // Created by Davis Polito on 2/1/24.
 //
-
 #include "main_section.h"
 
 
 MainSection::MainSection(juce::ValueTree v, juce::UndoManager &um, OpenGlWrapper & open_gl, SynthGuiData* data) : SynthSection("main_section"), v(v), um(um)
 {
     //constructionSite_ = std::make_unique<ConstructionSite>(v, um, open_gl, data);
-
+    modules_interface = std::make_unique<ModulesInterface>();
+    addSubSection(modules_interface.get());
     //addAndMakeVisible(constructionPort);
 //    ValueTree t(IDs::PREPARATION);
 //
@@ -40,7 +40,7 @@ void MainSection::resized()
     int width = getWidth();
     int widget_margin = findValue(Skin::kWidgetMargin);
     int large_padding = findValue(Skin::kLargePadding);
-
+    modules_interface->setBounds(large_padding, 0, width,height);
     //constructionPort.setBounds(large_padding, 0,getDisplayScale()* width, getDisplayScale() * height);
     //constructionPort.setBounds(large_padding, 0,width, height);
     DBG (":");

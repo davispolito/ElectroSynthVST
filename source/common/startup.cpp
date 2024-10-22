@@ -17,7 +17,7 @@
 #include "startup.h"
 
 
-void Startup::doStartupChecks(MidiManager* midi_manager) {
+void Startup::doStartupChecks() {
 
 
 

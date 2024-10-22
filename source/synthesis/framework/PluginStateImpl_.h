@@ -20,16 +20,83 @@
 #include <string_view>
 #include <tuple>
 #include <vector>
+#include "processors/funcmaps.h"
+#include <array>
+#include <type_traits>
+#include <iostream>
 
-template<typename T>
-struct LEAFParams : public chowdsp::ParamHolder
-{
-    LEAFParams (T& _module) : module (_module)
-    {
+// Helper struct to store type-value pairs
+template <typename T, int Value>
+struct TypeValuePair {
+    using type = T;
+    static constexpr int value = Value;
+};
 
+
+
+
+// Compile-time map implementation
+template <typename... Pairs>
+struct TypeMap {
+    // Constructor to initialize the TypeMap
+    constexpr TypeMap(Pairs...) {}
+
+    // Function to get value for type T
+    template <typename T>
+    static constexpr int get() {
+        return get_impl<T, Pairs...>();
     }
 
-    T& module;
+private:
+    // Recursively check the pairs and return the value if the type matches
+    template <typename T, typename Pair, typename... Rest>
+    static constexpr int get_impl() {
+        if constexpr (std::is_same_v<T, typename Pair::type>) {
+            return Pair::value;
+        } else {
+            return get_impl<T, Rest...>();
+        }
+    }
+
+    // Base case: type not found
+    template <typename T>
+    static constexpr int get_impl() {
+        static_assert(sizeof...(Pairs) > 0, "Type not found in map");
+        return -1; // This line is never reached
+    }
+};
+
+// Define your map using initializer syntax
+constexpr TypeMap map{
+    TypeValuePair<_tLFOModule, 0>{},
+    TypeValuePair<_tOscModule, 1>{},
+    TypeValuePair<_tEnvModule, 2>{}
+};
+const auto module_strings = std::to_array<std::string>({"LFOModule", "OscModule", "EnvModule"});
+
+constexpr std::array<float,MAX_NUM_PARAMS> createArray() {
+    std::array<float, MAX_NUM_PARAMS> arr{};
+    for (int i = 0; i < arr.size(); ++i) {
+        arr[i] = 0.5;
+    }
+    return arr;
+}
+constexpr std::array< float,MAX_NUM_PARAMS> empty_params =createArray();
+template <typename T>
+struct LEAFParams : public chowdsp::ParamHolder
+{
+    LEAFParams ( LEAF* leaf) : chowdsp::ParamHolder(module_strings[map.get<T>()])
+    {
+        //reinterpret_cast<T> allows for type unsafe casting
+        std::array<float,MAX_NUM_PARAMS> mutable_params = empty_params;
+        //std::copy(empty_params.begin(),empty_params.end(), mutable_params.begin(),mutable_params.end())
+        int h = map.get<T>();
+        DBG(juce::String(h));
+        void** yeet = reinterpret_cast<void**>(&module);
+        module_init_map[map.get<T>()](reinterpret_cast<void**>(&module), mutable_params.data(), getNextUuid(leaf) , leaf);
+    }
+
+    T* module;
 };
     /**
  * Template type to hold a plugin's state.
@@ -46,10 +113,10 @@ class PluginStateImpl_ : public chowdsp::PluginState
 
     public:
         /** Constructs a plugin state with no processor */
-        explicit PluginStateImpl_ (Module & _mod, juce::UndoManager* um = nullptr);
+        explicit PluginStateImpl_ (LEAF* leaf, juce::UndoManager* um = nullptr);
 
         /** Constructs the state and adds all the state parameters to the given processor */
-        explicit PluginStateImpl_ (Module & _mod, juce::AudioProcessor& proc, juce::UndoManager* um = nullptr);
+        explicit PluginStateImpl_ ( LEAF* leaf, juce::AudioProcessor& proc, juce::UndoManager* um = nullptr);
 
         /** Serializes the plugin state to the given MemoryBlock */
         void serialize (juce::MemoryBlock& data) const override;
@@ -81,13 +148,13 @@ class PluginStateImpl_ : public chowdsp::PluginState
     };
 
     template <typename ParameterState,typename Module, typename NonParameterState, typename Serializer>
-    PluginStateImpl_<ParameterState, Module, NonParameterState, Serializer>::PluginStateImpl_ (Module & _mod, juce::UndoManager* um) : params(_mod)
+    PluginStateImpl_<ParameterState, Module, NonParameterState, Serializer>::PluginStateImpl_ (LEAF* leaf, juce::UndoManager* um) : params(leaf)
     {
         initialise (params, nullptr, um);
     }
 
     template <typename ParameterState,typename Module, typename NonParameterState, typename Serializer>
-    PluginStateImpl_<ParameterState, Module, NonParameterState, Serializer>::PluginStateImpl_ (Module & _mod, juce::AudioProcessor& proc, juce::UndoManager* um) : params(_mod)
+    PluginStateImpl_<ParameterState, Module, NonParameterState, Serializer>::PluginStateImpl_ ( LEAF* leaf, juce::AudioProcessor& proc, juce::UndoManager* um) : params(leaf)
     {
         initialise (params, &proc, um);
     }

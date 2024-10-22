@@ -340,9 +340,9 @@ class SynthSlider : public OpenGlSlider, public TextEditor::Listener {
 //        virtual void modulationAmountChanged(SynthSlider* slider) { }
 //        virtual void modulationRemoved(SynthSlider* slider) { }
 //        virtual void guiChanged(SynthSlider* slider) { }
-//    };
+    SynthSlider(String name, chowdsp::FloatParameter& param);
 
-    SynthSlider(String name, chowdsp::FloatParameter& param, chowdsp::PluginState& pluginState);
+//    };
 //    SynthSlider(String name);
     virtual void mouseDown(const MouseEvent& e) override;
     virtual void mouseDrag(const MouseEvent& e) override;
@@ -484,7 +484,6 @@ class SynthSlider : public OpenGlSlider, public TextEditor::Listener {
 //        attachment = (param, pluginState, *this);
 //    }
   protected:
-    chowdsp::SliderAttachment attachment;
     PopupItems createPopupMenu();
     void setRotaryTextEntryBounds();
     void setLinearTextEntryBounds();

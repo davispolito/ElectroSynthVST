@@ -33,7 +33,7 @@ class MidiManager;
 
 class Startup {
   public:
-    static void doStartupChecks(MidiManager* midi_manager);
+    static void doStartupChecks();
     static bool isComputerCompatible();
 
   private:
