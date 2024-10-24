@@ -162,14 +162,14 @@ bool SynthBase::loadFromValueTree(const ValueTree& state)
    engine_->allSoundsOff();
    tree.copyPropertiesAndChildrenFrom(state, nullptr);
    pauseProcessing(false);
-   DBG("unpause processing");
+   //DBG("unpause processing");
    if (tree.isValid())
        return true;
    return false;
 }
 
 bool SynthBase::loadFromFile(File preset, std::string& error) {
-   DBG("laoding from file");
+   //DBG("laoding from file");
    if (!preset.exists())
        return false;
 

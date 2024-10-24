@@ -60,7 +60,7 @@ struct OscillatorParams : public LEAFParams<_tOscModule >
 class OscillatorModuleProcessor : public _PluginBase<PluginStateImpl_<OscillatorParams, _tOscModule>, _tOscModule>
 {
 public:
-    OscillatorModuleProcessor( LEAF* leaf);
+    OscillatorModuleProcessor(const juce::ValueTree&, LEAF* leaf);
 
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override{};

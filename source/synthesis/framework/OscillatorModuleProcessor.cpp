@@ -23,7 +23,7 @@ juce::String electrosynth::utils::harmonicValToString(float harmonic)
     else
         return juce::String(harmonic);
 }
-OscillatorModuleProcessor::OscillatorModuleProcessor( LEAF *leaf) :_PluginBase<PluginStateImpl_<OscillatorParams, _tOscModule>, _tOscModule>(leaf)
+OscillatorModuleProcessor::OscillatorModuleProcessor(const juce::ValueTree &v, LEAF *leaf) :_PluginBase<PluginStateImpl_<OscillatorParams, _tOscModule>, _tOscModule>(leaf)
 
 
 {

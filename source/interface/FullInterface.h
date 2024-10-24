@@ -95,6 +95,7 @@ private :
     std::unique_ptr<AboutSection> about_section_;
     std::unique_ptr<MainSection> main_;
     std::unique_ptr<HeaderSection> header_;
+    std::unique_ptr<SynthSlider> aa;
     int width_;
     int resized_width_;
     bool animate_;

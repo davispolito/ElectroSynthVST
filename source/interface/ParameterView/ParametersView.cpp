@@ -58,7 +58,7 @@ namespace bitklavier {
                 slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
                 _ASSERT(slider.getSectionParent() != nullptr);
                 DBG("create slider for " + param.paramID + "with parent " + parent.getName());
-            }
+             }
 
             void resized() override {
                 auto area = getBoundsInParent();

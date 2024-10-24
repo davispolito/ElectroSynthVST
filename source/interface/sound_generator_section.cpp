@@ -2,7 +2,9 @@
 // Created by Davis Polito on 10/22/24.
 //
 #include "sound_generator_section.h"
-
+#include "ModuleSections/ModuleSection.h"
+#include "OscillatorModuleProcessor.h"
+#include "ParameterView/ParametersView.h"
 class ModulesContainer : public SynthSection {
 public:
     ModulesContainer(String name) : SynthSection(name) { }
@@ -13,7 +15,7 @@ public:
     }
 };
 
-ModulesInterface::ModulesInterface() : SynthSection("modules") {
+ModulesInterface::ModulesInterface(juce::ValueTree &v) : SynthSection("modules"), tracktion::engine::ValueTreeObjectList<ModuleSection>(v) {
     container_ = std::make_unique<ModulesContainer>("container");
     
     addAndMakeVisible(viewport_);
@@ -51,9 +53,9 @@ ModulesInterface::ModulesInterface() : SynthSection("modules") {
 //    effect_order_ = std::make_unique<DragDropEffectOrder>("effect_chain_order");
 //    addSubSection(effect_order_.get());
 //    effect_order_->addListener(this);
-
-    //modules.push_back(std::make_unique<OscModuleSection>())
-
+//
+//    modules.push_back(std::make_unique<ModuleSection>());
+//    container_->addSubSection(modules[0].get());
     addSubSection(container_.get(), false);
 
 //    effects_list_[0] = chorus_section_.get();
@@ -73,18 +75,21 @@ ModulesInterface::ModulesInterface() : SynthSection("modules") {
     scroll_bar_->addListener(this);
 
     setOpaque(false);
+
+    factory.registerType<OscillatorModuleProcessor, juce::ValueTree, LEAF*>("OscModule");
+
 //    setSkinOverride(Skin::kAllEffects);
 }
 
 ModulesInterface::~ModulesInterface() {
-
+    freeObjects();
 }
 
 void ModulesInterface::paintBackground(Graphics& g) {
     Colour background = findColour(Skin::kBackground, true);
     g.setColour(background);
     g.fillRect(getLocalBounds().withRight(getWidth() - findValue(Skin::kLargePadding) / 2));
-//    paintChildBackground(g, effect_order_.get());
+    //paintChildBackground(g, effect_order_.get());
 
     redoBackgroundImage();
 }
@@ -113,7 +118,7 @@ void ModulesInterface::resized() {
 //    effect_order_->setSizeRatio(size_ratio_);
     int large_padding = findValue(Skin::kLargePadding);
     int shadow_width = getComponentShadowWidth();
-    int viewport_x = order_width + large_padding - shadow_width;
+    int viewport_x = 0 + large_padding - shadow_width;
     int viewport_width = getWidth() - viewport_x - large_padding + 2 * shadow_width;
     viewport_.setBounds(viewport_x, 0, viewport_width, getHeight());
     setEffectPositions();
@@ -142,6 +147,53 @@ void ModulesInterface::resized() {
 //    repaintBackground();
 //}
 //
+PopupItems ModulesInterface::createPopupMenu()
+{
+    PopupItems options;
+    options.addItem(1, "add osc" );
+    return options;
+}
+void ModulesInterface::mouseDown (const juce::MouseEvent& e)
+{
+    if(e.mods.isPopupMenu())
+    {
+        PopupItems options = createPopupMenu();
+        showPopupSelector(this, e.getPosition(), options, [=](int selection) { handlePopupResult(selection); });
+    }
+}
+
+void ModulesInterface::handlePopupResult(int result) {
+
+    //std::vector<vital::ModulationConnection*> connections = getConnections();
+    if (result == 1 )
+    {
+        juce::ValueTree t(IDs::MODULE);
+        t.setProperty(IDs::type, "OscModule", nullptr);
+        parent.appendChild(t,nullptr);
+    }
+//    if (result == kArmMidiLearn)
+//        synth->armMidiLearn(getName().toStdString());
+//    else if (result == kClearMidiLearn)
+//        synth->clearMidiLearn(getName().toStdString());
+//    else if (result == kDefaultValue)
+//        setValue(getDoubleClickReturnValue());
+//    else if (result == kManualEntry)
+//        showTextEntry();
+//    else if (result == kClearModulations) {
+//        for (vital::ModulationConnection* connection : connections) {
+//            std::string source = connection->source_name;
+//            synth_interface_->disconnectModulation(connection);
+//        }
+//        notifyModulationsChanged();
+//    }
+//    else if (result >= kModulationList) {
+//        int connection_index = result - kModulationList;
+//        std::string source = connections[connection_index]->source_name;
+//        synth_interface_->disconnectModulation(connections[connection_index]);
+//        notifyModulationsChanged();
+//    }
+}
+
 void ModulesInterface::setEffectPositions() {
     if (getWidth() <= 0 || getHeight() <= 0)
         return;
@@ -154,11 +206,16 @@ void ModulesInterface::setEffectPositions() {
     int knob_section_height = getKnobSectionHeight();
     int widget_margin = findValue(Skin::kWidgetMargin);
     int effect_height = 2 * knob_section_height - widget_margin;
-    int y = 200;
+    int y = 0;
 
     juce::Point<int> position = viewport_.getViewPosition();
     DBG("position viewport: x: " + juce::String(position.getX()) + "y: " + juce::String(position.getY()));
-
+    DBG("shadwo width: " + String(shadow_width));
+    for(auto& section : objects)
+    {
+      section->setBounds(shadow_width, y, effect_width, effect_height);
+      y += effect_height + padding;
+    }
 
     container_->setBounds(0, 0, viewport_.getWidth(), y - padding);
     viewport_.setViewPosition(position);
@@ -213,4 +270,37 @@ void ModulesInterface::setScrollBarRange() {
     DBG("container height: " + String(container_->getHeight()));
     DBG("viewport height: " + String(viewport_.getHeight()));
     DBG("scrollbar range: " + String(scroll_bar_->getCurrentRangeStart()) );
+}
+
+ModuleSection* ModulesInterface::createNewObject (const juce::ValueTree& v)
+{
+    auto parent = findParentComponentOfClass<SynthGuiInterface>();
+    LEAF* leaf = parent->getLEAF();
+    std::any args = std::make_tuple( v,leaf );
+    juce::AudioProcessor *proc;
+    try {
+      proc = factory.create(v.getProperty(IDs::type).toString().toStdString(),std::make_tuple( v,leaf ));
+    } catch (const std::bad_any_cast& e) {
+    std::cerr << "Error during object creation: " << e.what() << std::endl;
+    }
+    auto *module_section = new ModuleSection(v.getProperty(IDs::type).toString(), v, dynamic_cast<bitklavier::ParametersViewEditor*>(proc->createEditor()));
+    container_->addSubSection(module_section);
+
+    return module_section;
+
+}
+
+void ModulesInterface::newObjectAdded (ModuleSection*)
+{
+    resized();
+}
+
+void ModulesInterface::deleteObject (ModuleSection* at)
+{
+
+}
+
+void ModulesInterface::valueTreeRedirected (juce::ValueTree&)
+{
+
 }

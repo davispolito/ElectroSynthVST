@@ -24,7 +24,7 @@ namespace electrosynth {
                                 last_oversampling_amount_(-1), last_sample_rate_(-1)
   {
       LEAF_init(&leaf, 44100.0f, dummy_memory, 32, [](){return (float)rand()/RAND_MAX;});
-      processors.push_back(std::make_shared<OscillatorModuleProcessor> (&leaf));
+      //processors.push_back(std::make_shared<OscillatorModuleProcessor> (&leaf));
     //SoundEngine::init();
   }
 

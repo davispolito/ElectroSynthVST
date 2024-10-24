@@ -32,12 +32,15 @@ OpenGlImageComponent::OpenGlImageComponent(String name) : OpenGlComponent(name +
 void OpenGlImageComponent::redrawImage(bool force, bool clear) {
    if (!active_)
        return;
-
+    DBG("=-----" + OpenGlComponent::getName() + " -------");
    Component* component = component_ ? component_ : this;
 
-   float pixel_scale =2* Desktop::getInstance().getDisplays().getDisplayForRect(getScreenBounds())->scale;
+   float pixel_scale = Desktop::getInstance().getDisplays().getDisplayForRect(getScreenBounds())->scale;
+   DBG("pizel sace " + String(pixel_scale));
    int width = component->getWidth() * pixel_scale;
    int height = component->getHeight() * pixel_scale;
+   DBG("wdith " + String(width));
+    DBG("height " + String(height));
    if (width <= 0 || height <= 0)
        return;
 
@@ -60,12 +63,15 @@ void OpenGlImageComponent::redrawImage(bool force, bool clear) {
    float gl_height = electrosynth::utils::nextPowerOfTwo(height);
    float width_ratio = gl_width / width;
    float height_ratio = gl_height / height;
-
+   DBG("glwidt " + String(gl_width));
+   DBG("glheight " + String(gl_height));
+   DBG("wrat" + String(width_ratio));
+   DBG("hrat " + String(width_ratio));
    float right = -1.0f + 2.0f * width_ratio;
    float bottom = 1.0f - 2.0f * height_ratio;
-//   image_.setTopRight(right, 1.0f);
-//   image_.setBottomLeft(-1.0f, bottom);
-//   image_.setBottomRight(right, bottom);
+   image_.setTopRight(right, 1.0f);
+   image_.setBottomLeft(-1.0f, bottom);
+   image_.setBottomRight(right, bottom);
    image_.unlock();
 }
 

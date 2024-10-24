@@ -46,11 +46,12 @@ class OpenGlSlider : public Slider {
     static constexpr float kRotaryAngle = 0.8f * electrosynth::kPi;
 
     OpenGlSlider(String name) : Slider(name), parent_(nullptr), modulation_knob_(false), modulation_amount_(0.0f),
+                                image_component_(new OpenGlImageComponent(name)),
                                 paint_to_image_(false), active_(true), bipolar_(false), slider_quad_(new OpenGlSliderQuad(this)),knob_size_scale_(1.0f) {
       slider_quad_->setTargetComponent(this);
       setMaxArc(kRotaryAngle);
 
-      image_component_->paintEntireComponent(true);
+      image_component_->paintEntireComponent(false);
       image_component_->setComponent(this);
       image_component_->setScissor(true);
 
@@ -69,6 +70,11 @@ class OpenGlSlider : public Slider {
       Slider::valueChanged();
       redoImage();
     }
+    virtual void paint(Graphics &g) override
+    {
+
+    }
+
 //    virtual  void  paint(Graphics &g) override
 //    {
 //        Colour shadow_color = findColour(Skin::kShadow, true);
@@ -141,7 +147,7 @@ class OpenGlSlider : public Slider {
 
     void parentHierarchyChanged() override {
       parent_ = findParentComponentOfClass<SynthSection>();
-      Slider::parentHierarchyChanged();
+      juce::Slider::parentHierarchyChanged();
     }
 
     void paintToImage(bool paint) {

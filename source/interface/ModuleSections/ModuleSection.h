@@ -8,9 +8,26 @@
 #include "PluginStateImpl_.h"
 #include "ParameterView/ParametersView.h"
 #include <juce_gui_basics/juce_gui_basics.h>
-
-class ModuleSection : SynthSection
+class ModuleSection : public SynthSection
 {
+public:
+    ModuleSection(juce::String name, const juce::ValueTree &, bitklavier::ParametersViewEditor* editor);
+
+    virtual ~ModuleSection();
+
+    void paintBackground(Graphics& g) override;
+//    void setParametersViewEditor(bitklavier::ParametersViewEditor&&);
+    // void paintBackgroundShadow(Graphics& g) override { if (isActive()) paintTabShadow(g); }
+    void resized() override;
+  //  void setActive(bool active) override;
+    //void sliderValueChanged(Slider* changed_slider) override;
+    //void setAllValues(vital::control_map& controls) override;
+    //void setFilterActive(bool active);
+    juce::ValueTree state;
+private:
+    bitklavier::ParametersView* _view;
+    bitklavier::ParametersViewEditor* _view_editor;
+
 
 };
 

@@ -323,10 +323,10 @@ void SynthSlider::mouseDown(const MouseEvent& e) {
 
 void SynthSlider::mouseDrag(const MouseEvent& e) {
 
-  
+
   float multiply = 1.0f;
 
-    
+
   sensitive_mode_ = e.mods.isCommandDown();
   if (sensitive_mode_)
     multiply *= kSlowDragMultiplier;
@@ -619,7 +619,8 @@ void SynthSlider::drawRotaryShadow(Graphics &g) {
 
   g.saveState();
   g.setOrigin(getX(), getY());
-
+  DBG("x " + String(getX()));
+  DBG("y " + String(getY()));
   Colour body = findColour(Skin::kRotaryBody, true);
   float body_radius = knob_size_scale_ * findValue(Skin::kKnobBodySize) / 2.0f;
   if (body_radius >= 0.0f && body_radius < getWidth()) {
@@ -654,7 +655,7 @@ void SynthSlider::drawRotaryShadow(Graphics &g) {
   shadow_stroke.createStrokedPath(shadow_path, shadow_outline);
   if ((!findColour(Skin::kRotaryArcUnselected, true).isTransparent() && isActive()) ||
       (!findColour(Skin::kRotaryArcUnselectedDisabled, true).isTransparent() && !isActive())) {
-    g.setColour(shadow_color); 
+    g.setColour(shadow_color);
     g.fillPath(shadow_path);
   }
 
@@ -728,7 +729,7 @@ Rectangle<int> SynthSlider::getModulationMeterBounds() const {
 
   int buffer = findValue(Skin::kWidgetMargin);
   if (getSliderStyle() == LinearBar) {
-    return Rectangle<int>(mod_bounds.getX() + buffer, mod_bounds.getY(), 
+    return Rectangle<int>(mod_bounds.getX() + buffer, mod_bounds.getY(),
                           mod_bounds.getWidth() - 2 * buffer, mod_bounds.getHeight());
   }
   return Rectangle<int>(mod_bounds.getX(), mod_bounds.getY() + buffer,

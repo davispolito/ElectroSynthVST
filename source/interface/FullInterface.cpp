@@ -42,6 +42,11 @@ FullInterface::FullInterface(SynthGuiData* synth_data) : SynthSection("full_inte
    addSubSection(main_.get());
    main_->addListener(this);
 
+
+
+   header_ = std::make_unique<HeaderSection>();
+   addSubSection(header_.get());
+   header_->addListener(this);
    inspectButton = std::make_unique<OpenGlToggleButton>("Inspect the UI");
    addAndMakeVisible(inspectButton.get());
    addOpenGlComponent(inspectButton->getGlComponent());
@@ -56,11 +61,7 @@ FullInterface::FullInterface(SynthGuiData* synth_data) : SynthSection("full_inte
 
        inspector->setVisible (true);
    };
-
-   header_ = std::make_unique<HeaderSection>();
-   addSubSection(header_.get());
-   header_->addListener(this);
-
+   inspectButton->setAlwaysOnTop(true);
    popup_selector_ = std::make_unique<SinglePopupSelector>();
    addSubSection(popup_selector_.get());
    popup_selector_->setVisible(false);
@@ -291,12 +292,12 @@ void FullInterface::resized() {
 
 //   header_->setTabOffset(2 * voice_padding);
    header_->setBounds(left, top, width,  top_height);
-   Rectangle<int> main_bounds(0, 0, width, height);
+   Rectangle<int> main_bounds(left,header_->getBottom(), audio_width, height - top_height);
    Rectangle<int> new_bounds(0, 0, width, height);
    main_->setBounds(main_bounds);
 
    about_section_->setBounds(new_bounds);
-   //inspectButton->setBounds(10, 0, 100, 100);
+   inspectButton->setBounds(10, 0, 100, 100);
    if (getWidth() && getHeight())
        redoBackground();
 

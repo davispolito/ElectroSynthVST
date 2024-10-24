@@ -7,7 +7,7 @@
 MainSection::MainSection(juce::ValueTree v, juce::UndoManager &um, OpenGlWrapper & open_gl, SynthGuiData* data) : SynthSection("main_section"), v(v), um(um)
 {
     //constructionSite_ = std::make_unique<ConstructionSite>(v, um, open_gl, data);
-    modules_interface = std::make_unique<ModulesInterface>();
+    modules_interface = std::make_unique<ModulesInterface>(v);
     addSubSection(modules_interface.get());
     //addAndMakeVisible(constructionPort);
 //    ValueTree t(IDs::PREPARATION);
@@ -40,7 +40,13 @@ void MainSection::resized()
     int width = getWidth();
     int widget_margin = findValue(Skin::kWidgetMargin);
     int large_padding = findValue(Skin::kLargePadding);
-    modules_interface->setBounds(large_padding, 0, width,height);
+    int padding = getPadding();
+    int active_width = getWidth() - padding;
+    int width_left = (active_width - padding) / 2;
+    int width_right = active_width - width_left;
+    int right_x = width_left + padding;
+
+    modules_interface->setBounds(0, 0, width,height);
     //constructionPort.setBounds(large_padding, 0,getDisplayScale()* width, getDisplayScale() * height);
     //constructionPort.setBounds(large_padding, 0,width, height);
     DBG (":");

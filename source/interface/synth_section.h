@@ -335,6 +335,8 @@ class SynthSection : public Component, public Slider::Listener,
     void setSkinValues(std::map<Skin::ValueId, float> values) { value_lookup_ = std::move(values); }
     void setSkinOverride(Skin::SectionOverride skin_override) { skin_override_ = skin_override; }
     void addSlider(SynthSlider* slider, bool show = true, bool listen = true);
+    std::vector<juce::Component*> all_sliders_v;
+
   protected:
     void setSliderHasHzAlternateDisplay(SynthSlider* slider);
     void setSidewaysHeading(bool sideways) { sideways_heading_ = sideways; }

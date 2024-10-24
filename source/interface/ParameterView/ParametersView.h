@@ -27,6 +27,10 @@ namespace bitklavier {
             paintBorder(g);
             paintKnobShadows(g);
             paintChildrenBackgrounds(g);
+            for (auto slider : all_sliders_v)
+            {
+                drawLabelForComponent(g, slider->getName(), slider);
+            }
         }
     private:
         struct Pimpl;
@@ -48,15 +52,15 @@ namespace bitklavier {
             : juce::AudioProcessorEditor (proc),
               view (pluginState, params)
         {
-            setResizable (true, false);
-            setSize (view.getWidth(), view.getHeight());
+//            setResizable (true, false);
+//            setSize (view.getWidth(), view.getHeight());
 
-            addAndMakeVisible (view);
+            //addAndMakeVisible (view);
         }
 
         void resized() override
         {
-            view.setBounds (getLocalBounds());
+            //view.setBounds (getLocalBounds());
         }
 
         ParametersView view;
