@@ -709,14 +709,14 @@ Rectangle<int> SynthSection::getTitleBounds() {
   return Rectangle<int>(from, 0, to - from, title_width);
 }
 
-float SynthSection::getDisplayScale() const {
+double SynthSection::getDisplayScale() const {
   if (getWidth() <= 0)
     return 1.0f;
   
   Component* top_level = getTopLevelComponent();
   Rectangle<int> global_bounds = top_level->getLocalArea(this, getLocalBounds());
-  float display_scale = Desktop::getInstance().getDisplays().getDisplayForRect(top_level->getScreenBounds())->scale;
-  return display_scale * (1.0f * global_bounds.getWidth()) / getWidth();
+  double display_scale = Desktop::getInstance().getDisplays().getDisplayForRect(top_level->getScreenBounds())->scale;
+  return display_scale;// * (1.0f * global_bounds.getWidth()) / getWidth();
 }
 
 int SynthSection::getPixelMultiple() const {

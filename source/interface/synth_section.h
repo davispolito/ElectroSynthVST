@@ -367,7 +367,7 @@ class SynthSection : public Component, public Slider::Listener,
     int getTitleTextRight();
     Rectangle<int> getPowerButtonBounds();
     Rectangle<int> getTitleBounds();
-    float getDisplayScale() const;
+    double getDisplayScale() const;
     virtual int getPixelMultiple() const;
 
 

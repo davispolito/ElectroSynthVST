@@ -52,44 +52,39 @@ OpenGlComponent::OpenGlComponent(String name) : Component(name), only_bottom_cor
   background_color_ = Colours::transparentBlack;
   id = generateID();
 }
-
 OpenGlComponent::~OpenGlComponent() {
 }
 
 bool OpenGlComponent::setViewPort(Component* component, Rectangle<int> bounds, OpenGlWrapper& open_gl) {
   FullInterface* top_level = component->findParentComponentOfClass<FullInterface>();
+  DBG("----" + component->getName() + "-----");
   if(top_level == nullptr)
       return false;
-  float scale = open_gl.display_scale;
+//  float scale = open_gl.display_scale;
   float resize_scale = top_level->getResizingScale();
-  float render_scale = 1.0f;
-  if (scale == 1.0f)
-    render_scale = open_gl.context.getRenderingScale();
-
+//  float render_scale = 1.0f;
+//  if (scale == 1.0f)
+  float render_scale = open_gl.context.getRenderingScale();
+  DBG("resize_scale " + String(resize_scale));
   float gl_scale = render_scale * resize_scale;
-
+  float comp_scale = Component::getApproximateScaleFactorForComponent(component);
   Rectangle<int> top_level_bounds = top_level->getBounds();
   Rectangle<int> global_bounds = getGlobalBounds(component, bounds);
-  Rectangle<int> visible_bounds = getGlobalVisibleBounds(component, bounds);
+  Rectangle<int> visible_bounds = getGlobalVisibleBounds(component,  bounds);
+  juce::gl::glViewport(comp_scale * global_bounds.getX(),
+     std::ceil(comp_scale * top_level_bounds.getHeight()) - comp_scale * global_bounds.getBottom(),
+      comp_scale * global_bounds.getWidth(), comp_scale  * global_bounds.getHeight());
+  DBG("gl scale" + String(gl_scale));
+  DBG("x" + String(global_bounds.getX()));
+  DBG("Y pos" + String(std::ceil(render_scale * top_level_bounds.getHeight())) +   " - "  + String(gl_scale * global_bounds.getBottom()) + " = "
+      + String(std::ceil(render_scale * top_level_bounds.getHeight()) - gl_scale * global_bounds.getBottom()));
+  DBG(comp_scale);
 
-//  juce::gl::glViewport(gl_scale * scale* global_bounds.getX(),
-//             std::ceil(scale * render_scale  * top_level_bounds.getHeight()) - gl_scale * global_bounds.getBottom(),
-//             gl_scale * global_bounds.getWidth(), gl_scale * global_bounds.getHeight());
-  juce::gl::glViewport(gl_scale * scale * global_bounds.getX(),
-      (std::ceil(scale * render_scale * top_level_bounds.getHeight()) - gl_scale *  scale  * global_bounds.getBottom()),
-      scale * gl_scale * global_bounds.getWidth(), scale * gl_scale * global_bounds.getHeight());
-//DBG("x" +String(gl_scale * global_bounds.getX()) +
-//"y" + String (std::ceil(scale * render_scale * top_level_bounds.getHeight()) - gl_scale * global_bounds.getBottom()) +
-//"width" + String(  gl_scale * global_bounds.getWidth())  + "height" + String( gl_scale * global_bounds.getHeight()));
   if (visible_bounds.getWidth() <= 0 || visible_bounds.getHeight() <= 0)
     return false;
-
-  juce::gl::glScissor(gl_scale * scale * global_bounds.getX(),
-      (std::ceil(scale * render_scale * top_level_bounds.getHeight()) - gl_scale *  scale  * global_bounds.getBottom()),
-      scale * gl_scale * global_bounds.getWidth(), scale * gl_scale * global_bounds.getHeight());
-//  juce::gl::glScissor(gl_scale * scale *  visible_bounds.getX(),
-//      std::ceil(scale * render_scale * top_level_bounds.getHeight()) - gl_scale * visible_bounds.getBottom(),
-//      gl_scale * visible_bounds.getWidth(), gl_scale * visible_bounds.getHeight());
+  juce::gl::glScissor(comp_scale * visible_bounds.getX(),
+      std::ceil( comp_scale * top_level_bounds.getHeight()) - comp_scale * visible_bounds.getBottom(),
+         comp_scale * visible_bounds.getWidth(), comp_scale * visible_bounds.getHeight());
   return true;
 }
 
@@ -112,19 +107,19 @@ void OpenGlComponent::setScissorBounds(Component* component, Rectangle<int> boun
   FullInterface* top_level = component->findParentComponentOfClass<FullInterface>();
   float scale = open_gl.display_scale;
   float resize_scale = top_level->getResizingScale();
-  float render_scale = 1.0f;
-  if (scale == 1.0f)
-    render_scale *= open_gl.context.getRenderingScale();
+//  float render_scale = 1.0f;
+//  if (scale == 1.0f)
+    float render_scale = open_gl.context.getRenderingScale();
 
   float gl_scale = render_scale * resize_scale;
 
   Rectangle<int> top_level_bounds = top_level->getBounds();
   Rectangle<int> visible_bounds = getGlobalVisibleBounds(component, bounds);
-
+  float comp_scale = Component::getApproximateScaleFactorForComponent(component);
   if (visible_bounds.getHeight() > 0 && visible_bounds.getWidth() > 0) {
-    juce::gl::glScissor(gl_scale * visible_bounds.getX(),
-              std::ceil(scale * render_scale * top_level_bounds.getHeight()) - gl_scale * visible_bounds.getBottom(),
-              gl_scale * visible_bounds.getWidth(), gl_scale * visible_bounds.getHeight());
+    juce::gl::glScissor(comp_scale * visible_bounds.getX(),
+              std::ceil(comp_scale * top_level_bounds.getHeight()) - comp_scale * visible_bounds.getBottom(),
+              comp_scale * visible_bounds.getWidth(), comp_scale * visible_bounds.getHeight());
   }
 }
 

@@ -2,13 +2,13 @@
 // Created by Davis Polito on 2/1/24.
 //
 #include "main_section.h"
-
+#include "synth_slider.h"
 
 MainSection::MainSection(juce::ValueTree v, juce::UndoManager &um, OpenGlWrapper & open_gl, SynthGuiData* data) : SynthSection("main_section"), v(v), um(um)
 {
     //constructionSite_ = std::make_unique<ConstructionSite>(v, um, open_gl, data);
     modules_interface = std::make_unique<ModulesInterface>(v);
-    addSubSection(modules_interface.get());
+    //addSubSection(modules_interface.get());
     //addAndMakeVisible(constructionPort);
 //    ValueTree t(IDs::PREPARATION);
 //
@@ -16,7 +16,18 @@ MainSection::MainSection(juce::ValueTree v, juce::UndoManager &um, OpenGlWrapper
 //    t.setProperty(IDs::x,255, nullptr);
 //    t.setProperty(IDs::y,255, nullptr);
 //    v.addChild(t,-1, nullptr);
+    s = std::make_unique<SynthSlider>("main");
+    addAndMakeVisible(s.get());
+    addSlider(s.get());
+    //s->setAlwaysOnTop(true);
     setSkinOverride(Skin::kNone);
+    s->parentHierarchyChanged();
+    button = std::make_unique<SynthButton>("maoin1");
+    addAndMakeVisible(button.get());
+    addButton(button.get());
+    button->setAlwaysOnTop(true);
+    s->setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    _ASSERT(s->getSectionParent() != nullptr);
 }
 
 void MainSection::paintBackground(juce::Graphics& g)
@@ -25,7 +36,8 @@ void MainSection::paintBackground(juce::Graphics& g)
 
     g.setColour(findColour(Skin::kBody, true));
     paintChildrenBackgrounds(g);
-
+    paintKnobShadows(g);
+    drawLabelForComponent(g, s->getName(), s.get());
     g.saveState();
 
     g.restoreState();
@@ -45,8 +57,9 @@ void MainSection::resized()
     int width_left = (active_width - padding) / 2;
     int width_right = active_width - width_left;
     int right_x = width_left + padding;
-
-    modules_interface->setBounds(0, 0, width,height);
+    s->setBounds(0, 0, 100 *size_ratio_, 100* size_ratio_);
+    button->setBounds(right_x, 100, 20, 20);
+    //modules_interface->setBounds(0, 0, width,height);
     //constructionPort.setBounds(large_padding, 0,getDisplayScale()* width, getDisplayScale() * height);
     //constructionPort.setBounds(large_padding, 0,width, height);
     DBG (":");
@@ -54,5 +67,5 @@ void MainSection::resized()
     DBG("display scale" + String(getDisplayScale()));
     DBG("width" + String(getWidth()));
     DBG("height" + String(getHeight()));
-    SynthSection::resized();
+    //SynthSection::resized();
 }

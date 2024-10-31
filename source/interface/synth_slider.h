@@ -349,7 +349,7 @@ class SynthSlider : public OpenGlSlider, public TextEditor::Listener {
     SynthSlider(String name, chowdsp::FloatParameter& param);
 
 //    };
-//    SynthSlider(String name);
+     SynthSlider(String name);
     virtual void mouseDown(const MouseEvent& e) override;
     virtual void mouseDrag(const MouseEvent& e) override;
     virtual void mouseEnter(const MouseEvent& e) override;

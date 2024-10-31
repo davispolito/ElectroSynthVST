@@ -12,7 +12,7 @@
 #include "synth_section.h"
 #include "melatonin_inspector/melatonin_inspector.h"
 #include "popup_browser.h"
-
+#include "synth_slider.h"
 class AboutSection;
 struct SynthGuiData;
 class HeaderSection;
@@ -96,6 +96,7 @@ private :
     std::unique_ptr<MainSection> main_;
     std::unique_ptr<HeaderSection> header_;
     std::unique_ptr<SynthSlider> aa;
+    std::unique_ptr<SynthButton> button;
     int width_;
     int resized_width_;
     bool animate_;

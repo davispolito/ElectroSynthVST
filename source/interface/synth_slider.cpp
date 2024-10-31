@@ -220,7 +220,53 @@ void OpenGlSlider::setColors() {
 //    setVelocityBasedMode(false);
 //    setVelocityModeParameters(1.0, 0, 0.0, false, ModifierKeys::ctrlAltCommandModifiers);
 //}
+SynthSlider::SynthSlider(juce::String name) : OpenGlSlider(name), show_popup_on_hover_(false), scroll_enabled_(true),
+                                                                               bipolar_modulation_(false), stereo_modulation_(false),
+                                                                               bypass_modulation_(false), modulation_bar_right_(true),
+                                                                               snap_to_value_(false), hovering_(false),
+                                                                               has_parameter_assignment_(false),
+                                                                               use_suffix_(true), snap_value_(0.0),
+                                                                               text_height_percentage_(0.0f),
+                                                                               sensitivity_(kDefaultSensitivity),
+                                                                               popup_placement_(BubbleComponent::below),
+                                                                               modulation_control_placement_(BubbleComponent::below),
+                                                                               max_display_characters_(kDefaultFormatLength),
+                                                                               max_decimal_places_(kDefaultFormatDecimalPlaces), shift_index_amount_(0),
+                                                                               shift_is_multiplicative_(false), mouse_wheel_index_movement_(1.0),
+                                                                               text_entry_width_percent_(kDefaultTextEntryWidthPercent),
+                                                                               text_entry_height_percent_(kDefaultTextEntryHeightPercent),
+                                                                               display_multiply_(0.0f), display_exponential_base_(2.0f),
+                                                                               string_lookup_(nullptr), extra_modulation_target_(nullptr),
+                                                                               synth_interface_(nullptr) {
+  //setAttachment(param, pluginState);
+  setComponentID ("aaa");
+  text_entry_ = std::make_unique<OpenGlTextEditor>("text_entry");
+  text_entry_->setMonospace();
+  text_entry_->setMultiLine(false);
+  text_entry_->setScrollToShowCursor(false);
+  text_entry_->addListener(this);
+  text_entry_->setSelectAllWhenFocused(true);
+  text_entry_->setKeyboardType(TextEditor::numericKeyboard);
+  text_entry_->setJustification(Justification::centred);
+  text_entry_->setAlwaysOnTop(true);
+  text_entry_->getImageComponent()->setAlwaysOnTop(true);
+  addChildComponent(text_entry_.get());
 
+  setWantsKeyboardFocus(true);
+  setTextBoxStyle(Slider::NoTextBox, true, 0, 0);
+
+
+
+  setRotaryParameters(2.0f * electrosynth::kPi - kRotaryAngle, 2.0f * electrosynth::kPi + kRotaryAngle, true);
+
+
+
+
+  setDefaultRange();
+
+  setVelocityBasedMode(false);
+  setVelocityModeParameters(1.0, 0, 0.0, false, ModifierKeys::ctrlAltCommandModifiers);
+}
 SynthSlider::SynthSlider(juce::String name, chowdsp::FloatParameter& param) : OpenGlSlider(name), show_popup_on_hover_(false), scroll_enabled_(true),
                                         bipolar_modulation_(false), stereo_modulation_(false),
                                         bypass_modulation_(false), modulation_bar_right_(true),
@@ -604,10 +650,12 @@ void SynthSlider::drawShadow(Graphics &g) {
 }
 
 void SynthSlider::drawRotaryShadow(Graphics &g) {
+  Colour white = juce::Colours::white;
   Colour shadow_color = findColour(Skin::kShadow, true);
-
-  float center_x = getWidth() / 2.0f;
-  float center_y = getHeight() / 2.0f;
+  int width = getWidth();
+  int height = getHeight();
+  float center_x = (float)width / 2.0f;
+  float center_y = (float)height / 2.0f;
   float stroke_width = findValue(Skin::kKnobArcThickness);
   float radius = knob_size_scale_ * findValue(Skin::kKnobArcSize) / 2.0f;
   center_y += findValue(Skin::kKnobOffset);
@@ -618,12 +666,12 @@ void SynthSlider::drawRotaryShadow(Graphics &g) {
   PathStrokeType shadow_stroke(stroke_width + 1, PathStrokeType::beveled, PathStrokeType::rounded);
 
   g.saveState();
+  g.setColour(white);
+  g.fillRect(getX(), getY(), width, height);
   g.setOrigin(getX(), getY());
-  DBG("x " + String(getX()));
-  DBG("y " + String(getY()));
   Colour body = findColour(Skin::kRotaryBody, true);
   float body_radius = knob_size_scale_ * findValue(Skin::kKnobBodySize) / 2.0f;
-  if (body_radius >= 0.0f && body_radius < getWidth()) {
+  if (body_radius >= 0.0f && body_radius < width) {
 
     if (shadow_width > 0.0f) {
       Colour transparent_shadow = shadow_color.withAlpha(0.0f);

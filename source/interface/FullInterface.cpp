@@ -39,19 +39,19 @@ FullInterface::FullInterface(SynthGuiData* synth_data) : SynthSection("full_inte
 
    data->tree.addChild(t, -1, nullptr);
    main_ = std::make_unique<MainSection>(data->tree.getChildWithName(IDs::PIANO), data->um, open_gl_, data);
-   addSubSection(main_.get());
+   //addSubSection(main_.get());
    main_->addListener(this);
 
 
 
-   header_ = std::make_unique<HeaderSection>();
-   addSubSection(header_.get());
-   header_->addListener(this);
+   //header_ = std::make_unique<HeaderSection>();
+   //addSubSection(header_.get());
+   ///header_->addListener(this);
    inspectButton = std::make_unique<OpenGlToggleButton>("Inspect the UI");
    addAndMakeVisible(inspectButton.get());
    addOpenGlComponent(inspectButton->getGlComponent());
    inspectButton->setText("Inspect");
-   // this chunk of code instantiates and opens the melatonin inspector
+   /// this chunk of code instantiates and opens the melatonin inspector
    inspectButton->onClick = [&] {
        if (!inspector)
        {
@@ -61,37 +61,49 @@ FullInterface::FullInterface(SynthGuiData* synth_data) : SynthSection("full_inte
 
        inspector->setVisible (true);
    };
+   //inspectButton->triggerClick();
    inspectButton->setAlwaysOnTop(true);
-   popup_selector_ = std::make_unique<SinglePopupSelector>();
-   addSubSection(popup_selector_.get());
-   popup_selector_->setVisible(false);
-   popup_selector_->setAlwaysOnTop(true);
-   popup_selector_->setWantsKeyboardFocus(true);
+//   popup_selector_ = std::make_unique<SinglePopupSelector>();
+//   addSubSection(popup_selector_.get());
+//   popup_selector_->setVisible(false);
+//   popup_selector_->setAlwaysOnTop(true);
+//   popup_selector_->setWantsKeyboardFocus(true);
 
 
+   aa = std::make_unique<SynthSlider>("ddhh");
+   addAndMakeVisible(aa.get());
+   addSlider(aa.get());
+   aa->setAlwaysOnTop(true);
+   //
+   aa->parentHierarchyChanged();
+   aa->setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
 
+   button = std::make_unique<SynthButton>("b utton");
+   addAndMakeVisible(button.get());
+   addButton(button.get());
+   button->setAlwaysOnTop(true);
+   _ASSERT(aa->getSectionParent() != nullptr);
+//   popup_display_1_ = std::make_unique<PopupDisplay>();
+//   addSubSection(popup_display_1_.get());
+//   popup_display_1_->setVisible(false);
+//   popup_display_1_->setAlwaysOnTop(true);
+//   popup_display_1_->setWantsKeyboardFocus(false);
 
-   popup_display_1_ = std::make_unique<PopupDisplay>();
-   addSubSection(popup_display_1_.get());
-   popup_display_1_->setVisible(false);
-   popup_display_1_->setAlwaysOnTop(true);
-   popup_display_1_->setWantsKeyboardFocus(false);
+//   popup_display_2_ = std::make_unique<PopupDisplay>();
+//   addSubSection(popup_display_2_.get());
+//   popup_display_2_->setVisible(false);
+//   popup_display_2_->setAlwaysOnTop(true);
+//   popup_display_2_->setWantsKeyboardFocus(false);
 
-   popup_display_2_ = std::make_unique<PopupDisplay>();
-   addSubSection(popup_display_2_.get());
-   popup_display_2_->setVisible(false);
-   popup_display_2_->setAlwaysOnTop(true);
-   popup_display_2_->setWantsKeyboardFocus(false);
-
-    about_section_ = std::make_unique<AboutSection>("about");
-    addSubSection(about_section_.get(), false);
-    addChildComponent(about_section_.get());
-
-
-    about_section_->toFront(true);
+//    about_section_ = std::make_unique<AboutSection>("about");
+//    addSubSection(about_section_.get(), false);
+//    addChildComponent(about_section_.get());
+//
+//
+//    about_section_->toFront(true);
    //setOpaque(true);
    open_gl_context_.setContinuousRepainting(true);
-   open_gl_context_.setOpenGLVersionRequired(OpenGLContext::openGL3_2);
+   open_gl_context_.setOpenGLVersionRequired(OpenGLContext::openGL4_1);
    open_gl_context_.setSwapInterval(0);
    open_gl_context_.setRenderer(this);
    //componentpaintingenabled fixes flickering
@@ -129,21 +141,10 @@ void FullInterface::paintBackground(Graphics& g) {
    paintChildrenShadows(g);
 
    int padding = getPadding();
-   int bar_width = 6 * padding;
-   //g.setColour(header_->findColour(Skin::kBody, true));
-   //g.setColour(main_->findColour(Skin::kBody, true));
-   //g.setColour(inspectButton->findColour(Skin::k)
-   //int y = header_->getBottom();
-//   int height = keyboard_interface_->getY() - y;
-//   int x1 = extra_mod_section_->getRight() + padding;
-//   g.fillRect(x1, y, bar_width, height);
 
-//   if (synthesis_interface_) {
-//       int x2 = synthesis_interface_->getRight() + padding;
-//       g.fillRect(x2, y, bar_width, height);
-//   }
 
    paintKnobShadows(g);
+   drawLabelForComponent(g, aa->getName(), aa.get());
    paintChildrenBackgrounds(g);
 }
 
@@ -203,6 +204,7 @@ void FullInterface::repaintOpenGlBackground(OpenGlComponent* component) {
    background_.lock();
    Graphics g(background_image_);
    paintOpenGlBackground(g, component);
+
    background_.updateBackgroundImage(background_image_);
    background_.unlock();
 }
@@ -291,13 +293,15 @@ void FullInterface::resized() {
 
 
 //   header_->setTabOffset(2 * voice_padding);
-   header_->setBounds(left, top, width,  top_height);
-   Rectangle<int> main_bounds(left,header_->getBottom(), audio_width, height - top_height);
+  // header_->setBounds(left, top, width,  top_height);
+   Rectangle<int> main_bounds(left,top + top_height, audio_width, height);
    Rectangle<int> new_bounds(0, 0, width, height);
-   main_->setBounds(main_bounds);
+   //main_->setBounds(main_bounds);
+//about_section_->setBounds(new_bounds);o
 
-   about_section_->setBounds(new_bounds);
-   inspectButton->setBounds(10, 0, 100, 100);
+   aa->setBounds(getWidth()/2, getHeight()/2, 100 , 100 );
+   //button->setBounds(100, 0, 20, 20);
+   //inspectButton->setBounds(0, 0, 20, 100);
    if (getWidth() && getHeight())
        redoBackground();
 

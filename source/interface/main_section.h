@@ -6,6 +6,7 @@
 #define ELECTROSYNTH2_MAIN_SECTION_H
 #include "synth_section.h"
 #include "sound_generator_section.h"
+#include "synth_slider.h"
 class MainSection : public SynthSection
 {
 public:
@@ -32,7 +33,8 @@ private:
     juce::ValueTree v;
     juce::UndoManager &um;
     std::unique_ptr<ModulesInterface> modules_interface;
-
+    std::unique_ptr<SynthSlider> s;
+    std::unique_ptr<SynthButton> button;
     std::vector<Listener*> listeners_;
 
 };
