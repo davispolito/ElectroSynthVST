@@ -11,12 +11,12 @@
 class ModuleSection : public SynthSection
 {
 public:
-    ModuleSection(juce::String name, const juce::ValueTree &, bitklavier::ParametersViewEditor* editor);
+    ModuleSection(juce::String name, const juce::ValueTree &, electrosynth::ParametersViewEditor* editor);
 
     virtual ~ModuleSection();
 
     void paintBackground(Graphics& g) override;
-//    void setParametersViewEditor(bitklavier::ParametersViewEditor&&);
+//    void setParametersViewEditor(electrosynth::ParametersViewEditor&&);
     // void paintBackgroundShadow(Graphics& g) override { if (isActive()) paintTabShadow(g); }
     void resized() override;
   //  void setActive(bool active) override;
@@ -25,8 +25,8 @@ public:
     //void setFilterActive(bool active);
     juce::ValueTree state;
 private:
-    bitklavier::ParametersView* _view;
-    bitklavier::ParametersViewEditor* _view_editor;
+    electrosynth::ParametersView* _view;
+    electrosynth::ParametersViewEditor* _view_editor;
 
 
 };

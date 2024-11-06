@@ -68,7 +68,7 @@ public:
     void releaseResources() override {}
     void processAudioBlock (juce::AudioBuffer<float>& buffer) override {};
 
-    juce::AudioProcessorEditor* createEditor() override {return new bitklavier::ParametersViewEditor{*this};};
+    juce::AudioProcessorEditor* createEditor() override {return new electrosynth::ParametersViewEditor{*this};};
 
 };
 

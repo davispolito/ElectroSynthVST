@@ -3,7 +3,7 @@
 //
 
 #include "ModuleSection.h"
-ModuleSection::ModuleSection(juce::String name, const juce::ValueTree &v, bitklavier::ParametersViewEditor* editor) : SynthSection(name), state(v)
+ModuleSection::ModuleSection(juce::String name, const juce::ValueTree &v, electrosynth::ParametersViewEditor* editor) : SynthSection(name), state(v)
 {
     _view_editor = editor;
     _view = &_view_editor->view;
@@ -32,7 +32,7 @@ void ModuleSection::resized()
    SynthSection::resized();
 }
 
-//void ModuleSection::setParametersViewEditor (bitklavier::ParametersViewEditor&& editor)
+//void ModuleSection::setParametersViewEditor (electrosynth::ParametersViewEditor&& editor)
 //{
 //   _view_editor = editor;
 //   addSubSection(_view);

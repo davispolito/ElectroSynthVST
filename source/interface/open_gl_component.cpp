@@ -21,8 +21,8 @@
 
 
 namespace {
-  Rectangle<int> getGlobalBounds(Component* component, Rectangle<int> bounds) {
-    Component* parent = component->getParentComponent();
+  juce::Rectangle<int> getGlobalBounds(juce::Component* component, juce::Rectangle<int> bounds) {
+    juce::Component* parent = component->getParentComponent();
     while (parent && dynamic_cast<FullInterface*>(component) == nullptr) {
       bounds = bounds + component->getPosition();
       component = parent;
@@ -32,8 +32,8 @@ namespace {
     return bounds;
   }
 
-  Rectangle<int> getGlobalVisibleBounds(Component* component, Rectangle<int> visible_bounds) {
-    Component* parent = component->getParentComponent();
+  juce::Rectangle<int> getGlobalVisibleBounds(juce::Component* component, juce::Rectangle<int> visible_bounds) {
+    juce::Component* parent = component->getParentComponent();
     while (parent && dynamic_cast<FullInterface*>(parent) == nullptr) {
       visible_bounds = visible_bounds + component->getPosition();
       parent->getLocalBounds().intersectRectangle(visible_bounds);
@@ -46,49 +46,52 @@ namespace {
 }
 
 int OpenGlComponent::nID = 0;
-OpenGlComponent::OpenGlComponent(String name) : Component(name), only_bottom_corners_(false),
+OpenGlComponent::OpenGlComponent(juce::String name) : juce::Component(name), only_bottom_corners_(false),
                                                 parent_(nullptr), skin_override_(Skin::kNone)
                                                 {
-  background_color_ = Colours::transparentBlack;
+  background_color_ = juce::Colours::transparentBlack;
   id = generateID();
 }
+
 OpenGlComponent::~OpenGlComponent() {
 }
 
-bool OpenGlComponent::setViewPort(Component* component, Rectangle<int> bounds, OpenGlWrapper& open_gl) {
-  FullInterface* top_level = component->findParentComponentOfClass<FullInterface>();
-  DBG("----" + component->getName() + "-----");
+bool OpenGlComponent::setViewPort(juce::Component* component, juce::Rectangle<int> bounds, OpenGlWrapper& open_gl) {
+
+    FullInterface* top_level = component->findParentComponentOfClass<FullInterface>();
+
   if(top_level == nullptr)
       return false;
-//  float scale = open_gl.display_scale;
+  float scale = open_gl.display_scale;
   float resize_scale = top_level->getResizingScale();
-//  float render_scale = 1.0f;
-//  if (scale == 1.0f)
-  float render_scale = open_gl.context.getRenderingScale();
-  DBG("resize_scale " + String(resize_scale));
+  float render_scale = 1.0f;
+  if (scale == 1.0f)
+    render_scale = open_gl.context.getRenderingScale();
+
   float gl_scale = render_scale * resize_scale;
-  float comp_scale = Component::getApproximateScaleFactorForComponent(component);
-  Rectangle<int> top_level_bounds = top_level->getBounds();
-  Rectangle<int> global_bounds = getGlobalBounds(component, bounds);
-  Rectangle<int> visible_bounds = getGlobalVisibleBounds(component,  bounds);
-  juce::gl::glViewport(comp_scale * global_bounds.getX(),
-     std::ceil(comp_scale * top_level_bounds.getHeight()) - comp_scale * global_bounds.getBottom(),
-      comp_scale * global_bounds.getWidth(), comp_scale  * global_bounds.getHeight());
-  DBG("gl scale" + String(gl_scale));
-  DBG("x" + String(global_bounds.getX()));
-  DBG("Y pos" + String(std::ceil(render_scale * top_level_bounds.getHeight())) +   " - "  + String(gl_scale * global_bounds.getBottom()) + " = "
-      + String(std::ceil(render_scale * top_level_bounds.getHeight()) - gl_scale * global_bounds.getBottom()));
-  DBG(comp_scale);
+
+  juce::Rectangle<int> top_level_bounds = top_level->getBounds();
+  juce::Rectangle<int> global_bounds = getGlobalBounds(component, bounds);
+  juce::Rectangle<int> visible_bounds = getGlobalVisibleBounds(component, bounds);
+    float comp_scale = Component::getApproximateScaleFactorForComponent(component);
+//  //juce::gl::glViewport(gl_scale * global_bounds.getX(),
+//             std::ceil(scale * render_scale * top_level_bounds.getHeight()) - gl_scale * global_bounds.getBottom(),
+//             gl_scale * global_bounds.getWidth(), gl_scale * global_bounds.getHeight());
+  juce::gl::glViewport(gl_scale * scale * global_bounds.getX(),
+      (std::ceil(scale * render_scale * top_level_bounds.getHeight()) - gl_scale *  scale  * global_bounds.getBottom()),
+      scale * gl_scale * global_bounds.getWidth(), scale * gl_scale * global_bounds.getHeight());
 
   if (visible_bounds.getWidth() <= 0 || visible_bounds.getHeight() <= 0)
     return false;
-  juce::gl::glScissor(comp_scale * visible_bounds.getX(),
-      std::ceil( comp_scale * top_level_bounds.getHeight()) - comp_scale * visible_bounds.getBottom(),
-         comp_scale * visible_bounds.getWidth(), comp_scale * visible_bounds.getHeight());
+
+  juce::gl::glScissor(gl_scale * scale * global_bounds.getX(),
+      (std::ceil(scale * render_scale * top_level_bounds.getHeight()) - gl_scale *  scale  * global_bounds.getBottom()),
+      comp_scale * scale * gl_scale * global_bounds.getWidth(),comp_scale* scale * gl_scale * global_bounds.getHeight());
+
   return true;
 }
 
-bool OpenGlComponent::setViewPort(Component* component, OpenGlWrapper& open_gl) {
+bool OpenGlComponent::setViewPort(juce::Component* component, OpenGlWrapper& open_gl) {
   return setViewPort(component, component->getLocalBounds(), open_gl);
 }
 
@@ -96,34 +99,34 @@ bool OpenGlComponent::setViewPort(OpenGlWrapper& open_gl) {
   return setViewPort(this, open_gl);
 }
 
-void OpenGlComponent::setScissor(Component* component, OpenGlWrapper& open_gl) {
+void OpenGlComponent::setScissor(juce::Component* component, OpenGlWrapper& open_gl) {
   setScissorBounds(component, component->getLocalBounds(), open_gl);
 }
 
-void OpenGlComponent::setScissorBounds(Component* component, Rectangle<int> bounds, OpenGlWrapper& open_gl) {
+void OpenGlComponent::setScissorBounds(juce::Component* component, juce::Rectangle<int> bounds, OpenGlWrapper& open_gl) {
   if (component == nullptr)
     return;
 
   FullInterface* top_level = component->findParentComponentOfClass<FullInterface>();
   float scale = open_gl.display_scale;
   float resize_scale = top_level->getResizingScale();
-//  float render_scale = 1.0f;
-//  if (scale == 1.0f)
-    float render_scale = open_gl.context.getRenderingScale();
+  float render_scale = 1.0f;
+  if (scale == 1.0f)
+    render_scale *= open_gl.context.getRenderingScale();
 
   float gl_scale = render_scale * resize_scale;
 
-  Rectangle<int> top_level_bounds = top_level->getBounds();
-  Rectangle<int> visible_bounds = getGlobalVisibleBounds(component, bounds);
-  float comp_scale = Component::getApproximateScaleFactorForComponent(component);
+  juce::Rectangle<int> top_level_bounds = top_level->getBounds();
+  juce::Rectangle<int> visible_bounds = getGlobalVisibleBounds(component, bounds);
+
   if (visible_bounds.getHeight() > 0 && visible_bounds.getWidth() > 0) {
-    juce::gl::glScissor(comp_scale * visible_bounds.getX(),
-              std::ceil(comp_scale * top_level_bounds.getHeight()) - comp_scale * visible_bounds.getBottom(),
-              comp_scale * visible_bounds.getWidth(), comp_scale * visible_bounds.getHeight());
+    juce::gl::glScissor(gl_scale * visible_bounds.getX(),
+              std::ceil(scale * render_scale * top_level_bounds.getHeight()) - gl_scale * visible_bounds.getBottom(),
+              gl_scale * visible_bounds.getWidth(), gl_scale * visible_bounds.getHeight());
   }
 }
 
-void OpenGlComponent::paintBackground(Graphics& g) {
+void OpenGlComponent::paintBackground(juce::Graphics& g) {
   if (!isVisible())
     return;
 
@@ -153,7 +156,7 @@ void OpenGlComponent::parentHierarchyChanged() {
 //      num_voices_readout_ = parent->getSynth()->getStatusOutput("num_voices");
 //  }
 
-  Component::parentHierarchyChanged();
+  juce::Component::parentHierarchyChanged();
 }
 
 void OpenGlComponent::addRoundedCorners() {
@@ -171,7 +174,7 @@ void OpenGlComponent::init(OpenGlWrapper& open_gl) {
     corners_->init(open_gl);
 }
 
-void OpenGlComponent::renderCorners(OpenGlWrapper& open_gl, bool animate, Colour color, float rounding) {
+void OpenGlComponent::renderCorners(OpenGlWrapper& open_gl, bool animate, juce::Colour color, float rounding) {
   if (corners_) {
     if (only_bottom_corners_)
       corners_->setBottomCorners(getLocalBounds(), rounding);

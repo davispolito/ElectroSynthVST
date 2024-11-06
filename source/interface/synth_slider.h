@@ -15,6 +15,7 @@
  */
 
 #pragma once
+
 #include <chowdsp_plugin_state/chowdsp_plugin_state.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "curve_look_and_feel.h"
@@ -30,10 +31,10 @@ class SynthSection;
 
 class OpenGlSliderQuad : public OpenGlQuad {
   public:
-    OpenGlSliderQuad(OpenGlSlider* slider) : OpenGlQuad(Shaders::kRotarySliderFragment), slider_(slider) { }
+    OpenGlSliderQuad(OpenGlSlider* slider,juce::String name) : OpenGlQuad(Shaders::kRotarySliderFragment, name + "_quad"), slider_(slider) { }
     virtual void init(OpenGlWrapper& open_gl) override;
 
-    void paintBackground(Graphics& g) override;
+    void paintBackground(juce::Graphics& g) override;
 
   private:
     OpenGlSlider* slider_;
@@ -41,13 +42,14 @@ class OpenGlSliderQuad : public OpenGlQuad {
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OpenGlSliderQuad)
 };
 
-class OpenGlSlider : public Slider {
+class OpenGlSlider : public juce::Slider {
   public:
     static constexpr float kRotaryAngle = 0.8f * electrosynth::kPi;
 
-    OpenGlSlider(String name) : Slider(name), parent_(nullptr), modulation_knob_(false), modulation_amount_(0.0f),
+    OpenGlSlider(juce::String name) : juce::Slider(name), parent_(nullptr), modulation_knob_(false), modulation_amount_(0.0f),
+                                paint_to_image_(false), active_(true), bipolar_(false), slider_quad_(new OpenGlSliderQuad(this,name)),
                                 image_component_(new OpenGlImageComponent(name)),
-                                paint_to_image_(false), active_(true), bipolar_(false), slider_quad_(new OpenGlSliderQuad(this)),knob_size_scale_(1.0f) {
+                                knob_size_scale_(1.0f) {
       slider_quad_->setTargetComponent(this);
       setMaxArc(kRotaryAngle);
 
@@ -57,27 +59,24 @@ class OpenGlSlider : public Slider {
 
       slider_quad_->setActive(false);
       image_component_->setActive(false);
+
     }
 
     virtual void resized() override {
-        Slider::resized();
+        juce::Slider::resized();
         //image_component_.setBounds(getLocalBounds());
       setColors();
       setSliderDisplayValues();
     }
       
     virtual void valueChanged() override {
-      Slider::valueChanged();
+      juce::Slider::valueChanged();
       redoImage();
     }
-    virtual void paint(Graphics &g) override
-    {
-
-    }
-
-//    virtual  void  paint(Graphics &g) override
+    virtual void paint(juce::Graphics &g) override {}
+//    virtual  void  paint(juce::Graphics &g) override
 //    {
-//        Colour shadow_color = findColour(Skin::kShadow, true);
+//        juce::Colour shadow_color = findColour(Skin::kShadow, true);
 //
 //        float center_x = getWidth() / 2.0f;
 //        float center_y = getHeight() / 2.0f;
@@ -87,63 +86,67 @@ class OpenGlSlider : public Slider {
 //        float shadow_width = findValue(Skin::kKnobShadowWidth);
 //        float shadow_offset = findValue(Skin::kKnobShadowOffset);
 //
-//        PathStrokeType outer_stroke(stroke_width, PathStrokeType::beveled, PathStrokeType::rounded);
-//        PathStrokeType shadow_stroke(stroke_width + 1, PathStrokeType::beveled, PathStrokeType::rounded);
+//        juce::PathStrokeType outer_stroke(stroke_width, juce::PathStrokeType::beveled, juce::PathStrokeType::rounded);
+//        juce::PathStrokeType shadow_stroke(stroke_width + 1, juce::PathStrokeType::beveled, juce::PathStrokeType::rounded);
 //
 //        g.saveState();
-//        g.fillAll(juce::Colours::white);
-//        g.setOrigin(center_x,center_y);
-//
-//        Colour body = findColour(Skin::kRotaryBody, true);
-//        float body_radius = knob_size_scale_ * findValue(Skin::kKnobBodySize) / 2.0f;
-//        if (body_radius >= 0.0f && body_radius < getWidth()) {
-//
-//            if (shadow_width > 0.0f) {
-//                Colour transparent_shadow = shadow_color.withAlpha(0.0f);
-//                float shadow_radius = body_radius + shadow_width;
-//                ColourGradient shadow_gradient(shadow_color, center_x, center_y + shadow_offset,
-//                                               transparent_shadow, center_x - shadow_radius, center_y + shadow_offset, true);
-//                float shadow_start = std::max(0.0f, (body_radius - std::abs(shadow_offset))) / shadow_radius;
-//                shadow_gradient.addColour(shadow_start, shadow_color);
-//                shadow_gradient.addColour(1.0f - (1.0f - shadow_start) * 0.75f, shadow_color.withMultipliedAlpha(0.5625f));
-//                shadow_gradient.addColour(1.0f - (1.0f - shadow_start) * 0.5f, shadow_color.withMultipliedAlpha(0.25f));
-//                shadow_gradient.addColour(1.0f - (1.0f - shadow_start) * 0.25f, shadow_color.withMultipliedAlpha(0.0625f));
-//                g.setGradientFill(shadow_gradient);
-//                g.fillRect(getLocalBounds());
-//            }
-//
-//            g.setColour(body);
-////            DBG("x: " + String(center_x- body_radius));
-////            DBG("y: " + String(center_y- body_radius));
-////            DBG("body radius: " + String(body_radius));
-////            DBG("knob size scale " + String(knob_size_scale_));
-////            DBG("knob body size" + String(findValue(Skin::kKnobBodySize)));
-//            Rectangle<float> ellipse(10 - 1.5f*body_radius ,10 - 1.5f*body_radius, 1.5f*body_radius,1.5f*body_radius);
-//            //ellipse.setCentre(getWidth() / 2.0f, getHeight()/2);
-//            //Rectangle<float> ellipse(0, 0,  2.0f * body_radius, 2.0f * body_radius);
-//
-//            g.fillEllipse(ellipse);
-//
-//            g.setColour(findColour(Skin::kRotaryBodyBorder, true));
-//            g.drawEllipse(ellipse.reduced(0.5f), 1.0f);
-//        }
-//
-//        Path shadow_outline;
-//        Path shadow_path;
-//
-//        shadow_outline.addCentredArc(0, 0, radius, radius,
-//                                     0, -kRotaryAngle, kRotaryAngle, true);
-//        shadow_stroke.createStrokedPath(shadow_path, shadow_outline);
-//        if ((!findColour(Skin::kRotaryArcUnselected, true).isTransparent() && isActive()) ||
-//            (!findColour(Skin::kRotaryArcUnselectedDisabled, true).isTransparent() && !isActive())) {
-//            g.setColour(shadow_color);
-//            g.fillPath(shadow_path);
-//        }
+////        g.fillAll(juce::Colours::white);
+////        g.setOrigin(center_juce::x,center_y);
+////
+////        juce::Colour body = findColour(Skin::kRotaryBody, true);
+////        float body_radius = knob_size_scale_ * findValue(Skin::kKnobBodySize) / 2.0f;
+////        if (body_radius >= 0.0f && body_radius < getWidth()) {
+////
+////            if (shadow_width > 0.0f) {
+////                juce::Colour transparent_shadow = shadow_color.withAlpha(0.0f);
+////                float shadow_radius = body_radius + shadow_width;
+////                juce::ColourGradient shadow_gradient(shadow_color, center_x, center_y + shadow_offset,
+////                                               transparent_shadow, center_x - shadow_radius, center_y + shadow_offset, true);
+////                float shadow_start = std::max(0.0f, (body_radius - std::abs(shadow_offset))) / shadow_radius;
+////                shadow_gradient.addColour(shadow_start, shadow_color);
+////                shadow_gradient.addColour(1.0f - (1.0f - shadow_start) * 0.75f, shadow_color.withMultipliedAlpha(0.5625f));
+////                shadow_gradient.addColour(1.0f - (1.0f - shadow_start) * 0.5f, shadow_color.withMultipliedAlpha(0.25f));
+////                shadow_gradient.addColour(1.0f - (1.0f - shadow_start) * 0.25f, shadow_color.withMultipliedAlpha(0.0625f));
+////                g.setGradientFill(shadow_gradient);
+////                g.fillRect(getLocalBounds());
+////            }
+////
+////            g.setColour(body);
+//////            DBG("x: " + juce::String(center_x- body_radius));
+//////            DBG("y: " + juce::String(center_y- body_radius));
+//////            DBG("body radius: " + juce::String(body_radius));
+//////            DBG("knob size scale " + juce::String(knob_size_scale_));
+//////            DBG("knob body size" + juce::String(findValue(Skin::kKnobBodySize)));
+////            juce::Rectangle<float> ellipse(10 - 1.5f*body_radius ,10 - 1.5f*body_radius, 1.5f*body_radius,1.5f*body_radius);
+////            //ellipse.setCentre(getWidth() / 2.0f, getHeight()/2);
+////            //juce::Rectangle<float> ellipse(0, 0,  2.0f * body_radius, 2.0f * body_radius);
+////
+////            g.fillEllipse(ellipse);
+////
+////            g.setColour(findColour(Skin::kRotaryBodyBorder, true));
+////            g.drawEllipse(ellipse.reduced(0.5f), 1.0f);
+////        }
+////
+////        juce::Path shadow_outline;
+////        juce::Path shadow_path;
+////
+////        shadow_outline.addCentredArc(0, 0, radius, radius,
+////                                     0, -kRotaryAngle, kRotaryAngle, true);
+////        shadow_stroke.createStrokedPath(shadow_path, shadow_outline);
+////        if ((!findColour(Skin::kRotaryArcUnselected, true).isTransparent() && isActive()) ||
+////            (!findColour(Skin::kRotaryArcUnselectedDisabled, true).isTransparent() && !isActive())) {
+////            g.setColour(shadow_color);
+////            g.fillPath(shadow_path);
+////        }
 //
 //        g.restoreState();
 //        //DBG("paint");
 //    }
 
+//    void init (OpenGlWrapper &open_gl) override
+//    {
+//
+//    }
 
     void parentHierarchyChanged() override {
       parent_ = findParentComponentOfClass<SynthSection>();
@@ -215,15 +218,15 @@ class OpenGlSlider : public Slider {
       redoImage();
     }
 
-    virtual Colour getModColor() const {
+    virtual juce::Colour getModColor() const {
       return findColour(Skin::kModulationMeterControl, true);
     }
 
-    virtual Colour getBackgroundColor() const {
+    virtual juce::Colour getBackgroundColor() const {
       return findColour(Skin::kWidgetBackground, true);
     }
 
-    virtual Colour getUnselectedColor() const {
+    virtual juce::Colour getUnselectedColor() const {
       if (isModulationKnob())
         return findColour(Skin::kWidgetBackground, true);
       if (isRotary()) {
@@ -235,9 +238,9 @@ class OpenGlSlider : public Slider {
       return findColour(Skin::kLinearSliderUnselected, true);
     }
 
-    virtual Colour getSelectedColor() const {
+    virtual juce::Colour getSelectedColor() const {
       if (isModulationKnob()) {
-        Colour background = findColour(Skin::kWidgetBackground, true);
+        juce::Colour background = findColour(Skin::kWidgetBackground, true);
         if (active_)
           return findColour(Skin::kRotaryArc, true).interpolatedWith(background, 0.5f);
         return findColour(Skin::kRotaryArcDisabled, true).interpolatedWith(background, 0.5f);
@@ -252,7 +255,7 @@ class OpenGlSlider : public Slider {
       return findColour(Skin::kLinearSliderDisabled, true);
     }
 
-    virtual Colour getThumbColor() const {
+    virtual juce::Colour getThumbColor() const {
       if (isModulationKnob())
         return findColour(Skin::kRotaryArc, true);
       if (isRotary())
@@ -282,11 +285,11 @@ class OpenGlSlider : public Slider {
     SynthSection* parent_;
     float knob_size_scale_;
   private:
-    Colour thumb_color_;
-    Colour selected_color_;
-    Colour unselected_color_;
-    Colour background_color_;
-    Colour mod_color_;
+    juce::Colour thumb_color_;
+    juce::Colour selected_color_;
+    juce::Colour unselected_color_;
+    juce::Colour background_color_;
+    juce::Colour mod_color_;
 
     bool modulation_knob_;
     float modulation_amount_;
@@ -300,7 +303,7 @@ class OpenGlSlider : public Slider {
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OpenGlSlider)
 };
 
-class SynthSlider : public OpenGlSlider, public TextEditor::Listener {
+class SynthSlider : public OpenGlSlider, public juce::TextEditor::Listener {
   public:
     enum MenuId {
       kCancel = 0,
@@ -330,40 +333,40 @@ class SynthSlider : public OpenGlSlider, public TextEditor::Listener {
     static constexpr float kLinearHandlePercent = 1.2f;
     static constexpr float kLinearModulationPercent = 0.1f;
 
-//    class SliderListener {
-//      public:
-//        virtual ~SliderListener() { }
-//        virtual void hoverStarted(SynthSlider* slider) { }
-//        virtual void hoverEnded(SynthSlider* slider) { }
-//        virtual void mouseDown(SynthSlider* slider) { }
-//        virtual void mouseUp(SynthSlider* slider) { }
-//        virtual void beginModulationEdit(SynthSlider* slider) { }
-//        virtual void endModulationEdit(SynthSlider* slider) { }
-//        virtual void menuFinished(SynthSlider* slider) { }
-//        virtual void focusLost(SynthSlider* slider) { }
-//        virtual void doubleClick(SynthSlider* slider) { }
-//        virtual void modulationsChanged(const std::string& name) { }
-//        virtual void modulationAmountChanged(SynthSlider* slider) { }
-//        virtual void modulationRemoved(SynthSlider* slider) { }
-//        virtual void guiChanged(SynthSlider* slider) { }
-    SynthSlider(String name, chowdsp::FloatParameter& param);
+    class SliderListener {
+      public:
+        virtual ~SliderListener() { }
+        virtual void hoverStarted(SynthSlider* slider) { }
+        virtual void hoverEnded(SynthSlider* slider) { }
+        virtual void mouseDown(SynthSlider* slider) { }
+        virtual void mouseUp(SynthSlider* slider) { }
+        virtual void beginModulationEdit(SynthSlider* slider) { }
+        virtual void endModulationEdit(SynthSlider* slider) { }
+        virtual void menuFinished(SynthSlider* slider) { }
+        virtual void focusLost(SynthSlider* slider) { }
+        virtual void doubleClick(SynthSlider* slider) { }
+        virtual void modulationsChanged(const std::string& name) { }
+        virtual void modulationAmountChanged(SynthSlider* slider) { }
+        virtual void modulationRemoved(SynthSlider* slider) { }
+        virtual void guiChanged(SynthSlider* slider) { }
+    };
 
-//    };
-     SynthSlider(String name);
-    virtual void mouseDown(const MouseEvent& e) override;
-    virtual void mouseDrag(const MouseEvent& e) override;
-    virtual void mouseEnter(const MouseEvent& e) override;
-    virtual void mouseExit(const MouseEvent& e) override;
-    virtual void mouseUp(const MouseEvent& e) override;
-    virtual void mouseDoubleClick(const MouseEvent& e) override;
-    virtual void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;
+    //SynthSlider(juce::String name, chowdsp::FloatParameter& param);
+    SynthSlider(juce::String name);
+    virtual void mouseDown(const juce::MouseEvent& e) override;
+    virtual void mouseDrag(const juce::MouseEvent& e) override;
+    virtual void mouseEnter(const juce::MouseEvent& e) override;
+    virtual void mouseExit(const juce::MouseEvent& e) override;
+    virtual void mouseUp(const juce::MouseEvent& e) override;
+    virtual void mouseDoubleClick(const juce::MouseEvent& e) override;
+    virtual void mouseWheelMove(const juce::MouseEvent& e, const juce::MouseWheelDetails& wheel) override;
     virtual void focusLost(FocusChangeType cause) override;
 
     virtual void valueChanged() override;
-    String getRawTextFromValue(double value);
-    String getSliderTextFromValue(double value);
-    String getTextFromValue(double value) override;
-    double getValueFromText(const String& text) override;
+    juce::String getRawTextFromValue(double value);
+    juce::String getSliderTextFromValue(double value);
+    juce::String getTextFromValue(double value) override;
+    double getValueFromText(const juce::String& text) override;
     double getAdjustedValue(double value);
     double getValueFromAdjusted(double value);
     void setValueFromAdjusted(double value);
@@ -371,18 +374,18 @@ class SynthSlider : public OpenGlSlider, public TextEditor::Listener {
 
     virtual double snapValue(double attemptedValue, DragMode dragMode) override;
 
-    void textEditorTextChanged(TextEditor&) override {
+    void textEditorTextChanged(juce::TextEditor&) override {
       text_entry_->redoImage();
     }
-    void textEditorReturnKeyPressed(TextEditor& editor) override;
-    void textEditorFocusLost(TextEditor& editor) override;
+    void textEditorReturnKeyPressed(juce::TextEditor& editor) override;
+    void textEditorFocusLost(juce::TextEditor& editor) override;
     void setSliderPositionFromText();
 
     void showTextEntry();
     virtual bool shouldShowPopup() { return true; }
 
-    virtual void drawShadow(Graphics& g);
-    void drawRotaryShadow(Graphics& g);
+    virtual void drawShadow(juce::Graphics& g);
+    void drawRotaryShadow(juce::Graphics& g);
     void snapToValue(bool snap, float value = 0.0) {
       snap_to_value_ = snap;
       snap_value_ = value;
@@ -404,22 +407,22 @@ class SynthSlider : public OpenGlSlider, public TextEditor::Listener {
     const std::string* getStringLookup() const { return string_lookup_; }
 
 
-    String formatValue(float value);
+    juce::String formatValue(float value);
 
     void setDefaultRange();
 
-//    void addSliderListener(SliderListener* listener);
+    void addSliderListener(SliderListener* listener);
 
     void showPopup(bool primary);
     void hidePopup(bool primary);
-    void setPopupPlacement(BubbleComponent::BubblePlacement placement) {
+    void setPopupPlacement(juce::BubbleComponent::BubblePlacement placement) {
       popup_placement_ = placement;
     }
-    void setModulationPlacement(BubbleComponent::BubblePlacement placement) {
+    void setModulationPlacement(juce::BubbleComponent::BubblePlacement placement) {
       modulation_control_placement_ = placement;
     }
-    BubbleComponent::BubblePlacement getPopupPlacement() { return popup_placement_; }
-    BubbleComponent::BubblePlacement getModulationPlacement() { return modulation_control_placement_; }
+    juce::BubbleComponent::BubblePlacement getPopupPlacement() { return popup_placement_; }
+    juce::BubbleComponent::BubblePlacement getModulationPlacement() { return modulation_control_placement_; }
 
     void notifyGuis();
     void handlePopupResult(int result);
@@ -427,16 +430,16 @@ class SynthSlider : public OpenGlSlider, public TextEditor::Listener {
     void setSensitivity(double sensitivity) { sensitivity_ = sensitivity; }
     double getSensitivity() { return sensitivity_; }
 
-    Rectangle<int> getModulationMeterBounds() const;
+    juce::Rectangle<int> getModulationMeterBounds() const;
     bool hasModulationArea() const {
       return modulation_area_.getWidth();
     }
-    Rectangle<int> getModulationArea() const {
+    juce::Rectangle<int> getModulationArea() const {
       if (modulation_area_.getWidth())
         return modulation_area_;
       return getLocalBounds();
     }
-    void setModulationArea(Rectangle<int> area) { modulation_area_ = area; }
+    void setModulationArea(juce::Rectangle<int> area) { modulation_area_ = area; }
     bool isModulationBipolar() const { return bipolar_modulation_; }
     bool isModulationStereo() const { return stereo_modulation_; }
     bool isModulationBypassed() const { return bypass_modulation_; }
@@ -457,12 +460,12 @@ class SynthSlider : public OpenGlSlider, public TextEditor::Listener {
     void setTextEntryWidthPercent(float percent) { text_entry_height_percent_ = percent; redoImage(); }
     void setShiftIndexAmount(int shift_amount) { shift_index_amount_ = shift_amount; }
     void setShowPopupOnHover(bool show) { show_popup_on_hover_ = show; }
-    void setPopupPrefix(String prefix) { popup_prefix_ = prefix; }
+    void setPopupPrefix(juce::String prefix) { popup_prefix_ = prefix; }
     void setKnobSizeScale(float scale) { knob_size_scale_ = scale; }
     float getKnobSizeScale() const override { return knob_size_scale_; }
     void useSuffix(bool use) { use_suffix_ = use; }
-    void setExtraModulationTarget(Component* component) { extra_modulation_target_ = component; }
-    Component* getExtraModulationTarget() { return extra_modulation_target_; }
+    void setExtraModulationTarget(juce::Component* component) { extra_modulation_target_ = component; }
+    juce::Component* getExtraModulationTarget() { return extra_modulation_target_; }
     void setModulationBarRight(bool right) { modulation_bar_right_ = right; }
     bool isModulationBarRight() { return modulation_bar_right_; }
 
@@ -490,6 +493,7 @@ class SynthSlider : public OpenGlSlider, public TextEditor::Listener {
 //        attachment = (param, pluginState, *this);
 //    }
   protected:
+    chowdsp::SliderAttachment attachment;
     PopupItems createPopupMenu();
     void setRotaryTextEntryBounds();
     void setLinearTextEntryBounds();
@@ -498,13 +502,13 @@ class SynthSlider : public OpenGlSlider, public TextEditor::Listener {
     void notifyModulationsChanged();*/
 
     bool show_popup_on_hover_;
-    String popup_prefix_;
+    juce::String popup_prefix_;
     bool scroll_enabled_;
     bool bipolar_modulation_;
     bool stereo_modulation_;
     bool bypass_modulation_;
     bool modulation_bar_right_;
-    Rectangle<int> modulation_area_;
+    juce::Rectangle<int> modulation_area_;
     bool sensitive_mode_;
     bool snap_to_value_;
     bool hovering_;
@@ -514,8 +518,8 @@ class SynthSlider : public OpenGlSlider, public TextEditor::Listener {
     float text_height_percentage_;
     //float knob_size_scale_;
     double sensitivity_;
-    BubbleComponent::BubblePlacement popup_placement_;
-    BubbleComponent::BubblePlacement modulation_control_placement_;
+    juce::BubbleComponent::BubblePlacement popup_placement_;
+    juce::BubbleComponent::BubblePlacement modulation_control_placement_;
     int max_display_characters_;
     int max_decimal_places_;
     int shift_index_amount_;
@@ -536,11 +540,11 @@ class SynthSlider : public OpenGlSlider, public TextEditor::Listener {
 
     const std::string* string_lookup_;
 
-    Component* extra_modulation_target_;
+    juce::Component* extra_modulation_target_;
     SynthGuiInterface* synth_interface_;
     std::unique_ptr<OpenGlTextEditor> text_entry_;
 
-//    std::vector<SliderListener*> slider_listeners_;
+    std::vector<SliderListener*> slider_listeners_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SynthSlider)
 };

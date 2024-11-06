@@ -4,7 +4,7 @@
 #include "synth_section.h"
 struct OpenGlWrapper;
 
-namespace bitklavier {
+namespace electrosynth {
 /** Clone of juce::GenericAudioProcessorEditor, but usable as a generic component */
     class ParametersView : public SynthSection {
     public:

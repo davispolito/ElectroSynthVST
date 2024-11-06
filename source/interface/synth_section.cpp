@@ -716,7 +716,7 @@ double SynthSection::getDisplayScale() const {
   Component* top_level = getTopLevelComponent();
   Rectangle<int> global_bounds = top_level->getLocalArea(this, getLocalBounds());
   double display_scale = Desktop::getInstance().getDisplays().getDisplayForRect(top_level->getScreenBounds())->scale;
-  return display_scale;// * (1.0f * global_bounds.getWidth()) / getWidth();
+  return 1;// display_scale;// * (1.0f * global_bounds.getWidth()) / getWidth();
 }
 
 int SynthSection::getPixelMultiple() const {

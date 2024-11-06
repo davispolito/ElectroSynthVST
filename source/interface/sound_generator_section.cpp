@@ -283,7 +283,7 @@ ModuleSection* ModulesInterface::createNewObject (const juce::ValueTree& v)
     } catch (const std::bad_any_cast& e) {
     std::cerr << "Error during object creation: " << e.what() << std::endl;
     }
-    auto *module_section = new ModuleSection(v.getProperty(IDs::type).toString(), v, dynamic_cast<bitklavier::ParametersViewEditor*>(proc->createEditor()));
+    auto *module_section = new ModuleSection(v.getProperty(IDs::type).toString(), v, dynamic_cast<electrosynth::ParametersViewEditor*>(proc->createEditor()));
     container_->addSubSection(module_section);
 
     return module_section;

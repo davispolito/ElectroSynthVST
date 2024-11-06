@@ -2,7 +2,7 @@
 #include "synth_section.h"
 #include "synth_slider.h"
 #include "open_gl_background.h"
-namespace bitklavier {
+namespace electrosynth {
     namespace parameters_view_detail {
 
         //==============================================================================
@@ -49,7 +49,7 @@ namespace bitklavier {
         class SliderParameterComponent : public juce::Component {
         public:
             SliderParameterComponent(chowdsp::FloatParameter &param, chowdsp::ParameterListeners& listeners, SynthSection &parent)
-                    : slider(param.paramID, param), attachment(param, listeners, slider, nullptr) {
+                    : slider(param.paramID), attachment(param, listeners, slider, nullptr) {
                 setLookAndFeel(DefaultLookAndFeel::instance());
                 slider.setScrollWheelEnabled(false);
                 addAndMakeVisible(slider);
