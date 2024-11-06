@@ -138,7 +138,7 @@ namespace electrosynth {
       }
 
       force_inline T& at(std::size_t index) {
-        ELECTROSYNTH_ASSERT(index >= 0 && index < size());
+        _ASSERT(index >= 0 && index < size());
         return data_[(start_ + static_cast<int>(index)) % capacity_];
       }
 
@@ -153,11 +153,11 @@ namespace electrosynth {
       force_inline void push_back(T entry) {
         data_[end_] = std::move(entry);
         end_ = (end_ + 1) % capacity_;
-        ELECTROSYNTH_ASSERT(end_ != start_);
+        _ASSERT(end_ != start_);
       }
 
       force_inline T pop_back() {
-        ELECTROSYNTH_ASSERT(end_ != start_);
+        _ASSERT(end_ != start_);
         end_ = (end_ - 1 + capacity_) % capacity_;
         return data_[end_];
       }
@@ -165,18 +165,18 @@ namespace electrosynth {
       force_inline void push_front(T entry) {
         start_ = (start_ - 1 + capacity_) % capacity_;
         data_[start_] = entry;
-        ELECTROSYNTH_ASSERT(end_ != start_);
+        _ASSERT(end_ != start_);
       }
 
       force_inline T pop_front() {
-        ELECTROSYNTH_ASSERT(end_ != start_);
+        _ASSERT(end_ != start_);
         int last = start_;
         start_ = (start_ + 1) % capacity_;
         return data_[last];
       }
 
       force_inline void removeAt(int index) {
-        ELECTROSYNTH_ASSERT(end_ != start_);
+        _ASSERT(end_ != start_);
         int i = (index + start_) % capacity_;
         end_ = (end_ - 1 + capacity_) % capacity_;
         while (i != end_) {
@@ -264,7 +264,7 @@ namespace electrosynth {
       }
 
       force_inline int size() const {
-        ELECTROSYNTH_ASSERT(capacity_ > 0);
+        _ASSERT(capacity_ > 0);
         return (end_ - start_ + capacity_) % capacity_;
       }
 

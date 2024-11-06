@@ -7,7 +7,7 @@
 #pragma once
 #include <chowdsp_plugin_base/chowdsp_plugin_base.h>
 #include <chowdsp_parameters/chowdsp_parameters.h>
-
+#include <leaf.h>
 #if JUCE_MODULE_AVAILABLE_chowdsp_presets
     #include <chowdsp_presets/chowdsp_presets.h>
 #endif
@@ -38,7 +38,7 @@
 #endif
     {
     public:
-        explicit _PluginBase (TModule& module, juce::UndoManager* um = nullptr, const juce::AudioProcessor::BusesProperties& layout = getDefaultBusLayout());
+        explicit _PluginBase ( LEAF* leaf, juce::UndoManager* um = nullptr, const juce::AudioProcessor::BusesProperties& layout = getDefaultBusLayout());
         ~_PluginBase() override = default;
 
 #if defined JucePlugin_Name
@@ -150,7 +150,8 @@
 #else
         std::unique_ptr<chowdsp::ProgramAdapter::BaseProgramAdapter> programAdaptor = std::make_unique<chowdsp::ProgramAdapter::BaseProgramAdapter>();
 #endif
-
+        LEAF* leaf;
+        leaf::Processor proc;
 
     private:
         static juce::AudioProcessor::BusesProperties getDefaultBusLayout();
@@ -175,9 +176,11 @@
 
 #if JUCE_MODULE_AVAILABLE_chowdsp_plugin_state
     template <class State, class Module>
-    _PluginBase<State, Module>::_PluginBase (Module& mod, juce::UndoManager* um, const juce::AudioProcessor::BusesProperties& layout)
+    _PluginBase<State, Module>::_PluginBase (LEAF* leaf, juce::UndoManager* um, const juce::AudioProcessor::BusesProperties& layout)
+
         : AudioProcessor (layout),
-          state ( mod,*this, um)
+          state ( leaf),
+         leaf(leaf)
     {
     }
 #else

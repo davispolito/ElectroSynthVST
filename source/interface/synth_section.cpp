@@ -47,6 +47,10 @@ void SynthSection::reset() {
   for (auto& sub_section : sub_sections_)
     sub_section->reset();
 }
+float SynthSection::getKnobSectionHeight() {
+  return findValue(Skin::kKnobSectionHeight);
+}
+
 
 void SynthSection::resized() {
   Component::resized();
@@ -340,32 +344,44 @@ void SynthSection::initOpenGlComponents(OpenGlWrapper& open_gl) {
 
 void SynthSection::renderOpenGlComponents(OpenGlWrapper& open_gl, bool animate) {
   for (auto& sub_section : sub_sections_) {
-    if (sub_section->isVisible() && !sub_section->isAlwaysOnTop())
+      if (sub_section->isVisible() && !sub_section->isAlwaysOnTop())
       sub_section->renderOpenGlComponents(open_gl, animate);
   }
 
   for (auto& open_gl_component : open_gl_components_) {
-    if (open_gl_component->isVisible() && !open_gl_component->isAlwaysOnTop()) {
+      if (!open_gl_component->isInit())
+      {
+      open_gl_component->init(open_gl);
+      GLenum gl =  juce::gl::glGetError();
+      _ASSERT(gl == juce::gl::GL_NO_ERROR);
+      }
+      if (open_gl_component->isVisible() && !open_gl_component->isAlwaysOnTop()) {
       open_gl_component->render(open_gl, animate);
       GLenum gl =  juce::gl::glGetError();
-      //DBG(String(gl));
-      ELECTROSYNTH_ASSERT(gl == juce::gl::GL_NO_ERROR);
-    }
+      //DBG(juce::String(gl));
+      _ASSERT(gl == juce::gl::GL_NO_ERROR);
+      }
   }
 
   for (auto& sub_section : sub_sections_) {
-    if (sub_section->isVisible() && sub_section->isAlwaysOnTop())
+      if (sub_section->isVisible() && sub_section->isAlwaysOnTop())
       sub_section->renderOpenGlComponents(open_gl, animate);
   }
 
   for (auto& open_gl_component : open_gl_components_) {
-    if (open_gl_component->isVisible() && open_gl_component->isAlwaysOnTop()) {
+      if (!open_gl_component->isInit())
+      {
+      open_gl_component->init(open_gl);
+      GLenum gl =  juce::gl::glGetError();
+      _ASSERT(gl == juce::gl::GL_NO_ERROR);
+      }
+      if (open_gl_component->isVisible() && open_gl_component->isAlwaysOnTop()) {
       open_gl_component->render(open_gl, animate);
-      ELECTROSYNTH_ASSERT(juce::gl::glGetError() == juce::gl::GL_NO_ERROR);
-    }
+      _ASSERT(juce::gl::glGetError() == juce::gl::GL_NO_ERROR);
+      }
   }
-    if(background_)
-        background_->render(open_gl);
+  if(background_)
+      background_->render(open_gl);
 }
 
 void SynthSection::destroyOpenGlComponents(OpenGlWrapper& open_gl) {
@@ -449,10 +465,13 @@ void SynthSection::addButton(OpenGlShapeButton* button, bool show) {
 void SynthSection::addSlider(SynthSlider* slider, bool show, bool listen) {
   slider_lookup_[slider->getName().toStdString()] = slider;
   all_sliders_[slider->getName().toStdString()] = slider;
+  all_sliders_v.push_back(slider);
 //  if (listen)
 //    slider->addListener(this);
   if (show)
     addAndMakeVisible(slider);
+  else
+    addChildComponent(slider);
  addOpenGlComponent(slider->getImageComponent());
  addOpenGlComponent(slider->getQuadComponent());
  addOpenGlComponent(slider->getTextEditorComponent());
@@ -498,7 +517,7 @@ void SynthSection::addOpenGlComponent(std::shared_ptr<OpenGlComponent> open_gl_c
   if (open_gl_component == nullptr)
     return;
   
-  ELECTROSYNTH_ASSERT(std::find(open_gl_components_.begin(), open_gl_components_.end(),
+  _ASSERT(std::find(open_gl_components_.begin(), open_gl_components_.end(),
                          open_gl_component) == open_gl_components_.end());
 
   open_gl_component->setParent(this);
@@ -690,14 +709,14 @@ Rectangle<int> SynthSection::getTitleBounds() {
   return Rectangle<int>(from, 0, to - from, title_width);
 }
 
-float SynthSection::getDisplayScale() const {
+double SynthSection::getDisplayScale() const {
   if (getWidth() <= 0)
     return 1.0f;
   
   Component* top_level = getTopLevelComponent();
   Rectangle<int> global_bounds = top_level->getLocalArea(this, getLocalBounds());
-  float display_scale = Desktop::getInstance().getDisplays().getDisplayForRect(top_level->getScreenBounds())->scale;
-  return display_scale * (1.0f * global_bounds.getWidth()) / getWidth();
+  double display_scale = Desktop::getInstance().getDisplays().getDisplayForRect(top_level->getScreenBounds())->scale;
+  return 1;// display_scale;// * (1.0f * global_bounds.getWidth()) / getWidth();
 }
 
 int SynthSection::getPixelMultiple() const {

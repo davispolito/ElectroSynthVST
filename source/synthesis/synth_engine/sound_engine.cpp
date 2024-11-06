@@ -15,17 +15,17 @@
  */
 
 #include "sound_engine.h"
-
+#include "OscillatorModuleProcessor.h"
 
 
 namespace electrosynth {
 
   SoundEngine::SoundEngine() : /*voice_handler_(nullptr),*/
-                                last_oversampling_amount_(-1), last_sample_rate_(-1),
-                                processorGraph(new juce::AudioProcessorGraph())
-                                {
+                                last_oversampling_amount_(-1), last_sample_rate_(-1)
+  {
+      LEAF_init(&leaf, 44100.0f, dummy_memory, 32, [](){return (float)rand()/RAND_MAX;});
+      //processors.push_back(std::make_shared<OscillatorModuleProcessor> (&leaf));
     //SoundEngine::init();
-    processorGraph->clear();
   }
 
   SoundEngine::~SoundEngine() {
@@ -72,7 +72,7 @@ namespace electrosynth {
 
   void SoundEngine::setOversamplingAmount(int oversampling_amount, int sample_rate) {
     static constexpr int kBaseSampleRate = 44100;
-    
+
     int oversample = oversampling_amount;
     int sample_rate_mult = sample_rate / kBaseSampleRate;
     while (sample_rate_mult > 1 && oversample > 1) {

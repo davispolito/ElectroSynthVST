@@ -17,6 +17,8 @@
 #pragma once
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "../framework/note_handler.h"
+#include <leaf.h>
+#include <leaf-config.h>
 
 
 
@@ -34,7 +36,7 @@ namespace electrosynth {
 
 //      void init() override;
       void processWithInput(const  float* audio_in, int num_samples) {
-          //ELECTROSYNTH_ASSERT(num_samples <= output()->buffer_size);
+          //_ASSERT(num_samples <= output()->buffer_size);
 
           juce::FloatVectorOperations::disableDenormalisedNumberSupport();
 
@@ -47,14 +49,13 @@ namespace electrosynth {
       void process(int num_samples, juce::AudioSampleBuffer& buffer);
 
       void releaseResources()
-      {processorGraph->releaseResources();}
+      {}
+
       void prepareToPlay(double sampleRate, int samplesPerBlock)
       {
           setSampleRate(sampleRate);
           setBufferSize(samplesPerBlock);
 
-          processorGraph->prepareToPlay (sampleRate, samplesPerBlock);
-          initialiseGraph();
       }
 
       //void correctToTime(double seconds) override;
@@ -119,49 +120,12 @@ namespace electrosynth {
       void sostenutoOnRange(int from_channel, int to_channel);
       void sostenutoOffRange(int sample, int from_channel, int to_channel);
       force_inline int getOversamplingAmount() const { return last_oversampling_amount_; }
-      void connectAudioNodes()
-      {
-//          for (int channel = 0; channel < 2; ++channel)
-//              mainProcessor->addConnection ({ { audioInputNode->nodeID,  channel },
-//                                              { audioOutputNode->nodeID, channel } });
-      }
-
-      void connectMidiNodes()
-      {
-          processorGraph->addConnection ({ { midiInputNode->nodeID,  juce::AudioProcessorGraph::midiChannelIndex },
-                                          { midiOutputNode->nodeID, juce::AudioProcessorGraph::midiChannelIndex } });
-      }
-      void initialiseGraph()
-      {
-          processorGraph->clear();
-          lastUID = juce::AudioProcessorGraph::NodeID(0);
-          //audioInputNode  = mainProcessor->addNode (std::make_unique<AudioGraphIOProcessor> (AudioGraphIOProcessor::audioInputNode));
-          audioOutputNode = processorGraph->addNode (std::make_unique<AudioGraphIOProcessor> (AudioGraphIOProcessor::audioOutputNode),getNextUID());
-          midiInputNode   = processorGraph->addNode (std::make_unique<AudioGraphIOProcessor> (AudioGraphIOProcessor::midiInputNode),getNextUID());
-          midiOutputNode  = processorGraph->addNode (std::make_unique<AudioGraphIOProcessor> (AudioGraphIOProcessor::midiOutputNode),getNextUID());
-
-          connectAudioNodes();
-          connectMidiNodes();
-      }
-
-      juce::AudioProcessorGraph::NodeID lastUID;
-
-      juce::AudioProcessorGraph::NodeID getNextUID() noexcept
-      {
-          return juce::AudioProcessorGraph::NodeID (++(lastUID.uid));
-      }
-
-      Node::Ptr addNode (std::unique_ptr<juce::AudioProcessor> newProcessor)
-      {
-          return processorGraph->addNode(std::move(newProcessor), getNextUID());
-      }
 
       void checkOversampling();
       std::vector<std::shared_ptr<juce::AudioProcessor>> processors;
-      std::unique_ptr<juce::AudioProcessorGraph>  processorGraph;
-      Node::Ptr audioOutputNode;
-      Node::Ptr midiInputNode;
-      Node::Ptr midiOutputNode;
+      char dummy_memory[32];
+
+      LEAF leaf;
     private:
       void setOversamplingAmount(int oversampling_amount, int sample_rate);
       int last_oversampling_amount_;

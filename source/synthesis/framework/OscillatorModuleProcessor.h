@@ -7,6 +7,7 @@
 #include "SimpleOscModule.h"
 #include "_PluginBase.h"
 #include "PluginStateImpl_.h"
+#include "ParameterView/ParametersView.h"
 namespace electrosynth{
     namespace utils
     {
@@ -31,9 +32,9 @@ namespace electrosynth{
 //    }
 //};
 
-struct OscillatorParams : public LEAFParams<tOscModule >
+struct OscillatorParams : public LEAFParams<_tOscModule >
 {
-    OscillatorParams(tOscModule _module) : LEAFParams<tOscModule>(_module)
+    OscillatorParams(LEAF* leaf) : LEAFParams<_tOscModule>(leaf)
     {
        add(harmonic);
     }
@@ -56,10 +57,10 @@ struct OscillatorParams : public LEAFParams<tOscModule >
     chowdsp::FloatParameter::Ptr glide;
     //chowdsp::FloatParameter stepped;
 };
-class OscillatorModuleProcessor : public _PluginBase<PluginStateImpl_<OscillatorParams, tOscModule>, tOscModule>
+class OscillatorModuleProcessor : public _PluginBase<PluginStateImpl_<OscillatorParams, _tOscModule>, _tOscModule>
 {
 public:
-    OscillatorModuleProcessor(tOscModule& module);
+    OscillatorModuleProcessor(const juce::ValueTree&, LEAF* leaf);
 
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override{};
@@ -67,8 +68,8 @@ public:
     void releaseResources() override {}
     void processAudioBlock (juce::AudioBuffer<float>& buffer) override {};
 
-    juce::AudioProcessorEditor* createEditor() override {return nullptr;};
-    tOscModule &module;
+    juce::AudioProcessorEditor* createEditor() override {return new electrosynth::ParametersViewEditor{*this};};
+
 };
 
 #endif //ELECTROSYNTH_OSCILLATORMODULEPROCESSOR_H

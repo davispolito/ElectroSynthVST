@@ -6,9 +6,9 @@
 // Debugging.
 #if DEBUG
     #include <cassert>
-    #define ELECTROSYNTH_ASSERT(x) assert(x)
+    #define _ASSERT(x) assert(x)
 #else
-    #define ELECTROSYNTH_ASSERT(x) ((void)0)
+    #define _ASSERT(x) ((void)0)
 #endif // DEBUG
 
 #define UNUSED(x) ((void)x)

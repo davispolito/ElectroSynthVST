@@ -16,7 +16,7 @@
 
 #include "utils.h"
 
-namespace electrosynth {
+namespace electrosynth::utils {
 
      juce::String getMidiMessageDescription (const juce::MidiMessage& m)
     {
@@ -64,4 +64,3 @@ namespace electrosynth {
     }
 
   } // namespace utils
-} // namespace vital

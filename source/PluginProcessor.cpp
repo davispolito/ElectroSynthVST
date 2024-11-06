@@ -89,9 +89,9 @@ void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     engine_->prepareToPlay(sampleRate, samplesPerBlock);
-    engine_->processorGraph->setPlayConfigDetails (getMainBusNumInputChannels(),
-                                                                 getMainBusNumOutputChannels(),
-                                                                 sampleRate, samplesPerBlock);
+    //engine_->processorGraph->setPlayConfigDetails (getMainBusNumInputChannels(),
+    //                                                             getMainBusNumOutputChannels(),
+     //                                                            sampleRate, samplesPerBlock);
 
     //juce::ignoreUnused (sampleRate, samplesPerBlock);
 }
