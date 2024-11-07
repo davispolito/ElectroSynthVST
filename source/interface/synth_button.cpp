@@ -291,7 +291,7 @@ void SynthButton::handlePopupResult(int result) {
   if (parent == nullptr)
     return;
 
-  SynthBase* synth = parent->getSynth();
+
 //
 //  if (result == kArmMidiLearn)
 //    synth->armMidiLearn(getName().toStdString());
@@ -304,7 +304,6 @@ void SynthButton::mouseDown(const MouseEvent& e) {
   if (parent == nullptr)
     return;
 
-  SynthBase* synth = parent->getSynth();
 
 //  if (e.mods.isPopupMenu()) {
 //    OpenGlToggleButton::mouseExit(e);

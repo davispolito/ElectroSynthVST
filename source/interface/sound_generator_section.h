@@ -5,23 +5,59 @@
 #ifndef ELECTROSYNTH_SOUND_GENERATOR_SECTION_H
 #define ELECTROSYNTH_SOUND_GENERATOR_SECTION_H
 #include "synth_section.h"
+#include "Identifiers.h"
+#include <tracktion_engine.h>
 #include "ModuleSections/ModuleSection.h"
 #include <functional>
 #include <map>
 #include <string>
 #include <iostream>
+//template <class Base>
+//class Factory {
+//public:
+//    using CreateFunction = std::function<Base*(std::any)>;
+//
+//    template <typename T, typename... Args>
+//    void registerType(const std::string& typeName) {
+//        creators[typeName] = [](std::any args) -> Base* {
+//            try {
+//                auto tupleArgs = std::any_cast<std::tuple<Args...>>(args); // Unpack std::any into tuple
+//                return std::apply([](auto&&... unpackedArgs) {
+//                    return new T(std::forward<decltype(unpackedArgs)>(unpackedArgs)...);  // Forward arguments to constructor
+//                }, tupleArgs);  // Apply the arguments
+//            } catch (const std::bad_any_cast& e) {
+//                std::cerr << "std::bad_any_cast: " << e.what() << " (expected tuple)" << std::endl;
+//                return nullptr;
+//            }
+//        };
+//    }
+//
+//    // Create object with arguments wrapped in std::any
+//    Base* create(const std::string& typeName, std::any args) const {
+//        auto it = creators.find(typeName);
+//        if (it != creators.end()) {
+//            return it->second(args);  // Call the creation function with arguments
+//        }
+//        return nullptr;  // Type not found
+//    }
+//
+//
+//private:
+//    std::map<std::string, CreateFunction> creators;
+//};
+
 template <class Base>
 class Factory {
 public:
-    using CreateFunction = std::function<Base*(std::any)>;
+    using CreateFunction = std::function<std::shared_ptr<Base>(std::any)>;
 
     template <typename T, typename... Args>
     void registerType(const std::string& typeName) {
-        creators[typeName] = [](std::any args) -> Base* {
+        creators[typeName] = [](std::any args) -> std::shared_ptr<Base> {
             try {
                 auto tupleArgs = std::any_cast<std::tuple<Args...>>(args); // Unpack std::any into tuple
                 return std::apply([](auto&&... unpackedArgs) {
-                    return new T(std::forward<decltype(unpackedArgs)>(unpackedArgs)...);  // Forward arguments to constructor
+                    return std::make_shared<T>(std::forward<decltype(unpackedArgs)>(unpackedArgs)...);  // Create shared_ptr with forwarded arguments
                 }, tupleArgs);  // Apply the arguments
             } catch (const std::bad_any_cast& e) {
                 std::cerr << "std::bad_any_cast: " << e.what() << " (expected tuple)" << std::endl;
@@ -31,14 +67,13 @@ public:
     }
 
     // Create object with arguments wrapped in std::any
-    Base* create(const std::string& typeName, std::any args) const {
+    std::shared_ptr<Base> create(const std::string& typeName, std::any args) const {
         auto it = creators.find(typeName);
         if (it != creators.end()) {
             return it->second(args);  // Call the creation function with arguments
         }
         return nullptr;  // Type not found
     }
-
 
 private:
     std::map<std::string, CreateFunction> creators;

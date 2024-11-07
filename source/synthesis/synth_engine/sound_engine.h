@@ -46,7 +46,7 @@ namespace electrosynth {
 
 
       }
-      void process(int num_samples, juce::AudioSampleBuffer& buffer);
+      void process(juce::AudioSampleBuffer&, juce::MidiBuffer &);
 
       void releaseResources()
       {}

@@ -28,5 +28,21 @@ OscillatorModuleProcessor::OscillatorModuleProcessor(const juce::ValueTree &v, L
 
 {
    //tOscModule_init(static_cast<void*>(module), {0, 0}, id, leaf)
+    tOscModule_processorInit(state.params.module, &processor);
+}
+
+void OscillatorModuleProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
+{
+    int numSamples = buffer.getNumSamples();
+    buffer.clear();
+//    auto* samplesL = buffer.getReadPointer(0);
+    auto* L = buffer.getWritePointer(0);
+    auto* R = buffer.getWritePointer(0);
+    for (int i = 0; i < numSamples; i++)
+    {
+        tOscModule_tick(state.params.module);
+        L[i] = state.params.module->outputs[0];
+        R[i] = state.params.module->outputs[0];
+    }
 
 }

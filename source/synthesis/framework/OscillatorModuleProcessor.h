@@ -31,31 +31,115 @@ namespace electrosynth{
 //        this->params(t);
 //    }
 //};
-
+//typedef enum {
+//    OscMidiPitch,
+//    OscHarmonic,
+//    OscPitchOffset,
+//    OscPitchFine,
+//    OscFreqOffset,
+//    OscShapeParam,
+//    OscAmpParam,
+//    OscGlide,
+//    OscStepped,
+//    OscSyncMode,
+//    OscSyncIn,
+//    OscType,
+//    OscNumParams
+//} OscParams;
 struct OscillatorParams : public LEAFParams<_tOscModule >
 {
     OscillatorParams(LEAF* leaf) : LEAFParams<_tOscModule>(leaf)
     {
-       add(harmonic);
+       add(harmonic, pitchOffset, pitchFine, freqOffset, shape, amp);
     }
     chowdsp::FloatParameter::Ptr harmonic {
         juce::ParameterID{"harmonic" , 100},
         "Harmonic",
-        chowdsp::ParamUtils::createNormalisableRange(-12.f, 12.f, 0.f),
-        0.8f,
+        chowdsp::ParamUtils::createNormalisableRange(-12.f, 12.f, 0.f, 1.f),
+        0.5f,
         &module->params[OscParams::OscHarmonic],
-        [this](void * obj, float val)
-        {module->setterFunctions[OscParams::OscHarmonic](obj,val);},
+        [this](float val)
+        {module->setterFunctions[OscParams::OscHarmonic](this->module,val);
+        DBG("harm [0 - 1]" + juce::String(val) + " .. .  harm actual Val" + juce::String(this->module->harmonicMultiplier));
+        },
+
         &electrosynth::utils::harmonicValToString,
         &electrosynth::utils::stringToHarmonicVal
     };
-    chowdsp::FloatParameter::Ptr pitchOffset;
-    chowdsp::FloatParameter::Ptr pitchFine;
-    chowdsp::FloatParameter::Ptr freqOffset;
-    chowdsp::FloatParameter::Ptr shape;
-    chowdsp::FloatParameter::Ptr amp;
-    chowdsp::FloatParameter::Ptr glide;
-    //chowdsp::FloatParameter stepped;
+    chowdsp::FloatParameter::Ptr pitchOffset {
+        juce::ParameterID{"pitch" , 100},
+        "Pitch",
+        chowdsp::ParamUtils::createNormalisableRange(-12.f, 12.f, 0.f,1.f),
+        0.8f,
+        &module->params[OscParams::OscPitchOffset],
+        [this](float val)
+        {module->setterFunctions[OscParams::OscPitchOffset](this->module,val);
+        DBG("pitch [0 - 1] " + juce::String(val)  + " ... pitch actual " + juce::String(this->module->pitchOffset));
+       },
+
+        &chowdsp::ParamUtils::floatValToString,
+        &chowdsp::ParamUtils::stringToFloatVal
+    };
+
+    chowdsp::FloatParameter::Ptr pitchFine {
+        juce::ParameterID{"pitch_fine" , 100},
+        "Pitch Fine",
+        chowdsp::ParamUtils::createNormalisableRange(-1.f, 1.f,0.f),
+        0.8f,
+        &module->params[OscParams::OscPitchFine],
+        [this]( float val)
+        {module->setterFunctions[OscParams::OscPitchFine](this->module,val);
+        DBG("fine [0 - 1] " + juce::String(val) + " ..... fine actual " + juce::String(this->module->fine));
+    },
+        &chowdsp::ParamUtils::floatValToString,
+        &chowdsp::ParamUtils::stringToFloatVal
+    };
+
+    chowdsp::FloatParameter::Ptr freqOffset
+        {
+        juce::ParameterID{"freq_offset" , 100},
+        "Freq Offset",
+        chowdsp::ParamUtils::createNormalisableRange(-2000.f, 2000.f,0.f),
+        0.8f,
+        &module->params[OscParams::OscFreqOffset],
+        [this]( float val)
+        {module->setterFunctions[OscParams::OscFreqOffset](this->module,val);
+            DBG("freq [0 - 1] " + juce::String(val) + " .... freq actual Val" + juce::String(this->module->freqOffset));},
+        &chowdsp::ParamUtils::floatValToString,
+        &chowdsp::ParamUtils::stringToFloatVal
+    };
+    chowdsp::FloatParameter::Ptr shape
+        {
+            juce::ParameterID{"shape" , 100},
+            "Shape",
+            chowdsp::ParamUtils::createNormalisableRange(0.0f, 1.f ,0.5f),
+            0.8f,
+            &module->params[OscParams::OscShapeParam],
+            [this]( float val)
+            {module->setterFunctions[OscParams::OscShapeParam](this->module->theOsc,val);
+            DBG("sghape [0 - 1]" + juce::String(val) + ".... cant see actual val");
+   },
+            &chowdsp::ParamUtils::floatValToString,
+            &chowdsp::ParamUtils::stringToFloatVal
+        };
+    chowdsp::FloatParameter::Ptr amp
+        {
+            juce::ParameterID{"amp" , 100},
+            "amplitude",
+            chowdsp::ParamUtils::createNormalisableRange(0.0f, 2.f ,0.5f),
+            0.8f,
+            &module->params[OscParams::OscAmpParam],
+            [this]( float val)
+            {module->setterFunctions[OscParams::OscAmpParam](this->module,val);
+            DBG("amp [0 - 1] " + juce::String(val) + ".. .... amp actual " + juce::String(this->module->amp));
+  },
+            &chowdsp::ParamUtils::floatValToString,
+            &chowdsp::ParamUtils::stringToFloatVal
+        };
+
+
+
+
 };
 class OscillatorModuleProcessor : public _PluginBase<PluginStateImpl_<OscillatorParams, _tOscModule>, _tOscModule>
 {
@@ -63,13 +147,13 @@ public:
     OscillatorModuleProcessor(const juce::ValueTree&, LEAF* leaf);
 
 
-    void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override{};
+    void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
     void prepareToPlay (double sampleRate, int samplesPerBlock) override {};
     void releaseResources() override {}
     void processAudioBlock (juce::AudioBuffer<float>& buffer) override {};
 
     juce::AudioProcessorEditor* createEditor() override {return new electrosynth::ParametersViewEditor{*this};};
-
+    leaf::tProcessor processor;
 };
 
 #endif //ELECTROSYNTH_OSCILLATORMODULEPROCESSOR_H

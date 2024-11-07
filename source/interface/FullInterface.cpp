@@ -15,7 +15,7 @@
 */
 
 #include "FullInterface.h"
-//"test_section.h"
+#include "test_section.h"
 //#include "default_look_and_feel.h"
 #include "text_look_and_feel.h"
 #include "Identifiers.h"
@@ -28,82 +28,80 @@ FullInterface::FullInterface(SynthGuiData* synth_data) : SynthSection("full_inte
                                                          open_gl_(open_gl_context_),
                                                           data(synth_data)
 {
-   full_screen_section_ = nullptr;
-   Skin default_skin;
-   setSkinValues(default_skin, true);
-   default_skin.copyValuesToLookAndFeel(DefaultLookAndFeel::instance());
+    full_screen_section_ = nullptr;
+    Skin default_skin;
+    setSkinValues(default_skin, true);
+    default_skin.copyValuesToLookAndFeel(DefaultLookAndFeel::instance());
 
-//    test_ = std::make_unique<TestSection>();
-//    addSubSection(test_.get());
 
-   juce::ValueTree t(IDs::PIANO);
-   t.setProperty(IDs::name, "default", nullptr);
 
-   data->tree.addChild(t, -1, nullptr);
-   main_ = std::make_unique<MainSection>(data->tree.getChildWithName(IDs::PIANO), data->um, open_gl_, data);
-   addSubSection(main_.get());
-   main_->addListener(this);
+    ValueTree t(IDs::PIANO);
+    t.setProperty(IDs::name, "default", nullptr);
 
-//   inspectButton = std::make_unique<OpenGlToggleButton>("Inspect the UI");
-//   addAndMakeVisible(inspectButton.get());
-//   addOpenGlComponent(inspectButton->getGlComponent());
-//   inspectButton->setText("Inspect");
-//   // this chunk of code instantiates and opens the melatonin inspector
-//   inspectButton->onClick = [&] {
-//       if (!inspector)
-//       {
-//           inspector = std::make_unique<melatonin::Inspector> (*this);
-//           inspector->onClose = [this]() { inspector.reset(); };
-//       }
+    data->tree.addChild(t, -1, nullptr);
+    main_ = std::make_unique<MainSection>(data->tree.getChildWithName(IDs::PIANO), data->um, open_gl_, data);
+    addSubSection(main_.get());
+    main_->addListener(this);
+
+
+
+    header_ = std::make_unique<HeaderSection>();
+    addSubSection(header_.get());
+    header_->addListener(this);
+    //inspectButton = std::make_unique<OpenGlToggleButton>("Inspect the UI");
+//    addAndMakeVisible(inspectButton.get());
+//    addOpenGlComponent(inspectButton->getGlComponent());
+//    inspectButton->setText("Inspect");
+//    // this chunk of code instantiates and opens the melatonin inspector
+//    inspectButton->onClick = [&] {
+//        if (!inspector)
+//        {
+//            inspector = std::make_unique<melatonin::Inspector> (*this);
+//            inspector->onClose = [this]() { inspector.reset(); };
+//        }
 //
-//       inspector->setVisible (true);
-//   };
-
-   header_ = std::make_unique<HeaderSection>();
-   addSubSection(header_.get());
-   header_->addListener(this);
-
-   popup_selector_ = std::make_unique<SinglePopupSelector>();
-   addSubSection(popup_selector_.get());
-   popup_selector_->setVisible(false);
-   popup_selector_->setAlwaysOnTop(true);
-   popup_selector_->setWantsKeyboardFocus(true);
+//        inspector->setVisible (true);
+//    };
+//    inspectButton->setAlwaysOnTop(true);
+    popup_selector_ = std::make_unique<SinglePopupSelector>();
+    addSubSection(popup_selector_.get());
+    popup_selector_->setVisible(false);
+    popup_selector_->setAlwaysOnTop(true);
+    popup_selector_->setWantsKeyboardFocus(true);
 
 
-//    prep_popup = std::make_unique<PreparationPopup>();
-//    addSubSection(prep_popup.get());
-//    prep_popup->setVisible(false);
-//    prep_popup->setAlwaysOnTop(true);
-//    prep_popup->setWantsKeyboardFocus(true);
 
-   popup_display_1_ = std::make_unique<PopupDisplay>();
-   addSubSection(popup_display_1_.get());
-   popup_display_1_->setVisible(false);
-   popup_display_1_->setAlwaysOnTop(true);
-   popup_display_1_->setWantsKeyboardFocus(false);
 
-   popup_display_2_ = std::make_unique<PopupDisplay>();
-   addSubSection(popup_display_2_.get());
-   popup_display_2_->setVisible(false);
-   popup_display_2_->setAlwaysOnTop(true);
-   popup_display_2_->setWantsKeyboardFocus(false);
+    popup_display_1_ = std::make_unique<PopupDisplay>();
+    addSubSection(popup_display_1_.get());
+    popup_display_1_->setVisible(false);
+    popup_display_1_->setAlwaysOnTop(true);
+    popup_display_1_->setWantsKeyboardFocus(false);
+
+    popup_display_2_ = std::make_unique<PopupDisplay>();
+    addSubSection(popup_display_2_.get());
+    popup_display_2_->setVisible(false);
+    popup_display_2_->setAlwaysOnTop(true);
+    popup_display_2_->setWantsKeyboardFocus(false);
 
     about_section_ = std::make_unique<AboutSection>("about");
     addSubSection(about_section_.get(), false);
     addChildComponent(about_section_.get());
 
+    test_section = std::make_unique<TestSection>();
+    addSubSection(test_section.get());
 
     about_section_->toFront(true);
-   setOpaque(true);
-   open_gl_context_.setContinuousRepainting(true);
-   open_gl_context_.setOpenGLVersionRequired(juce::OpenGLContext::openGL3_2);
-   open_gl_context_.setSwapInterval(0);
-   open_gl_context_.setRenderer(this);
-   //componentpaintingenabled fixes flickering
-   open_gl_context_.setComponentPaintingEnabled(false); // set to true, and the non-OpenGL components will draw
-   open_gl_context_.attachTo(*this);
+    //setOpaque(true);
+    open_gl_context_.setContinuousRepainting(true);
+    open_gl_context_.setOpenGLVersionRequired(OpenGLContext::openGL3_2);
+    open_gl_context_.setSwapInterval(0);
+    open_gl_context_.setRenderer(this);
+    //componentpaintingenabled fixes flickering
+    open_gl_context_.setComponentPaintingEnabled(false);
+    open_gl_context_.attachTo(*this);
 
-   ///startTimer(100);
+    ///startTimer(100);
 
 }
 
@@ -295,12 +293,12 @@ void FullInterface::resized() {
    int audio_width = section_one_width + section_two_width + padding;
 
 
-   //header_->setTabOffset(2 * voice_padding);
-   //header_->setBounds(left, top, width,  top_height);
-   juce::Rectangle<int> main_bounds(0, 0, width, height);
+   header_->setTabOffset(2 * voice_padding);
+   header_->setBounds(left, top, width,  top_height);
+   Rectangle<int> main_bounds(left,header_->getBottom(), width, height - top_height);
    juce::Rectangle<int> new_bounds(0, 0, width, height);
    main_->setBounds(main_bounds);
-   //test_->setBounds(main_bounds);
+   //test_section->setBounds(main_bounds);
   // prep_popup->setBounds(100, 100, 700, 700);
    about_section_->setBounds(new_bounds);
    //inspectButton->setBounds(10, 0, 100, 100);

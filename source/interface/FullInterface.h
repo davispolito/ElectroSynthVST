@@ -91,7 +91,7 @@ public :
     juce::CriticalSection open_gl_critical_section_;
     OpenGlWrapper open_gl_;
 private :
-
+    std::unique_ptr<TestSection> test_section;
     std::unique_ptr<AboutSection> about_section_;
     std::unique_ptr<MainSection> main_;
     std::unique_ptr<HeaderSection> header_;
@@ -109,10 +109,10 @@ private :
     std::unique_ptr<Shaders> shaders_;
 
     juce::Image background_image_;
-    OpenGlBackground background_;
     //juce::TextButton inspectButton { "Inspect the UI" };
-    std::unique_ptr<melatonin::Inspector> inspector;
+    // std::unique_ptr<melatonin::Inspector> inspector;
     std::unique_ptr<OpenGlToggleButton> inspectButton;
+    OpenGlBackground background_;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FullInterface)
 };
 

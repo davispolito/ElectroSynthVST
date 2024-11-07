@@ -278,8 +278,8 @@ PopupItems SynthSlider::createPopupMenu() {
   if (has_parameter_assignment_)
     options.addItem(kArmMidiLearn, "Learn MIDI Assignment");
 
-  if (has_parameter_assignment_ && synth_interface_->getSynth()->isMidiMapped(getName().toStdString()))
-    options.addItem(kClearMidiLearn, "Clear MIDI Assignment");
+//  if (has_parameter_assignment_ && synth_interface_->getSynth()->isMidiMapped(getName().toStdString()))
+//    options.addItem(kClearMidiLearn, "Clear MIDI Assignment");
 
   options.addItem(kManualEntry, "Enter juce::Value");
 
@@ -292,7 +292,7 @@ PopupItems SynthSlider::createPopupMenu() {
 }
 
 void SynthSlider::mouseDown(const juce::MouseEvent& e) {
-  SynthBase* synth = synth_interface_->getSynth();
+//  SynthBase* synth = synth_interface_->getSynth();
 
   if (e.mods.isAltDown()) {
     showTextEntry();
@@ -747,7 +747,7 @@ juce::Rectangle<int> SynthSlider::getModulationMeterBounds() const {
 
 
 void SynthSlider::handlePopupResult(int result) {
-  SynthBase* synth = synth_interface_->getSynth();
+  //SynthBase* synth = synth_interface_->getSynth();
 
 
 //  if (result == kArmMidiLearn)

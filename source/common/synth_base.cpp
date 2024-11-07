@@ -145,17 +145,13 @@ void SynthBase::setMpeEnabled(bool enabled) {
 }
 
 
-juce::AudioProcessorGraph::Node::Ptr SynthBase::addProcessor(std::unique_ptr<juce::AudioProcessor> processor , juce::AudioProcessorGraph::NodeID id)
+void SynthBase::addProcessor(std::shared_ptr<juce::AudioProcessor> processor)
 {
    processor->prepareToPlay(engine_->getSampleRate(), engine_->getBufferSize());
-   return {};//engine_->addNode(std::move(processor) , id);
+   engine_->processors.push_back(static_cast<const std::shared_ptr<AudioProcessor>> (processor));
 }
 
 
-void SynthBase::addConnection(AudioProcessorGraph::Connection &connect)
-{
-//   _ASSERT(engine_->processorGraph->addConnection(connect));
-}
 bool SynthBase::loadFromValueTree(const ValueTree& state)
 {
    pauseProcessing(true);
@@ -237,7 +233,7 @@ void SynthBase::processAudio(AudioSampleBuffer* buffer, int channels, int sample
    AudioThreadAction action;
    while (processorInitQueue.try_dequeue (action))
        action();
-   engine_->process(samples, *buffer);
+   //engine_->process(samples, *buffer);
    writeAudio(buffer, channels, samples, offset);
 }
 void SynthBase::processAudioAndMidi(juce::AudioBuffer<float>& audio_buffer, juce::MidiBuffer& midi_buffer) //, int channels, int samples, int offset, int start_sample = 0, int end_sample = 0)
@@ -249,7 +245,7 @@ void SynthBase::processAudioAndMidi(juce::AudioBuffer<float>& audio_buffer, juce
    while (processorInitQueue.try_dequeue (action))
        action();
 
-   //engine_->processorGraph->processBlock(audio_buffer, midi_buffer);
+   engine_->process(audio_buffer, midi_buffer);
 
    //melatonin::printSparkline(audio_buffer);
 

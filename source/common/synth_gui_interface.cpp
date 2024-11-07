@@ -48,6 +48,8 @@ void SynthGuiInterface::externalPresetLoaded(File preset) { }
 void SynthGuiInterface::setGuiSize(float scale) { }
 
 #else
+
+    #include "synth_base.h"
 #include <memory>
 #include "../interface/look_and_feel/default_look_and_feel.h"
 #include "../interface/fullInterface.h"
@@ -80,6 +82,13 @@ void SynthGuiInterface::updateGuiControl(const std::string& name, float value) {
 
 LEAF* SynthGuiInterface::getLEAF()
 {return synth_->getLeaf();}
+void SynthGuiInterface::tryEnqueueProcessorInitQueue (juce::FixedSizeFunction<64, void()> callback) {
+  synth_->processorInitQueue.try_enqueue(std::move(callback));
+}
+void SynthGuiInterface::addProcessor(std::shared_ptr<juce::AudioProcessor> processor)
+{
+  synth_->addProcessor (processor);
+}
 //float SynthGuiInterface::getControlValue(const std::string& name) {
 //  return synth_->getControls()[name]->value();
 //}

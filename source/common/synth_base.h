@@ -106,13 +106,11 @@ public:
    };
    AudioDeviceManager* manager;
 
-   juce::AudioProcessorGraph::Node::Ptr addProcessor(std::unique_ptr<juce::AudioProcessor> processor, juce::AudioProcessorGraph::NodeID id ={});
-   juce::AudioProcessorGraph::Node * getNodeForId(AudioProcessorGraph::NodeID id);
-   void addConnection(AudioProcessorGraph::Connection& connect);
+   void addProcessor(std::shared_ptr<juce::AudioProcessor> processor);
 
    juce::ValueTree& getValueTree();
    juce::UndoManager& getUndoManager();
-   static constexpr size_t actionSize = 16; // sizeof ([this, i = index] { callMessageThreadBroadcaster (i); })
+   static constexpr size_t actionSize = 64; // sizeof ([this, i = index] { callMessageThreadBroadcaster (i); })
    using AudioThreadAction = juce::dsp::FixedSizeFunction<actionSize, void()>;
    moodycamel::ReaderWriterQueue<AudioThreadAction> processorInitQueue { 10 };
    bool saveToFile(File preset);

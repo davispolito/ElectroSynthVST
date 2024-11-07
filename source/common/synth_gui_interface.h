@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include "synth_base.h"
 
 #if HEADLESS
 
@@ -24,13 +23,17 @@ class FullInterface { };
 class AudioDeviceManager { };
 
 #endif
-#include "templates/Factory.h"
+#include <juce_data_structures/juce_data_structures.h>
+#include <juce_dsp/juce_dsp.h>
+#include <juce_audio_devices/juce_audio_devices.h>
+#include <juce_audio_processors/juce_audio_processors.h>
+class LEAF;
 class FullInterface;
-
+class SynthBase;
 struct SynthGuiData {
   SynthGuiData(SynthBase* synth_base);
   juce::ValueTree& tree;
-  UndoManager& um;
+  juce::UndoManager& um;
   SynthBase* synth;
 };
 
@@ -41,18 +44,18 @@ class SynthGuiInterface {
     virtual ~SynthGuiInterface();
 
     virtual juce::AudioDeviceManager* getAudioDeviceManager() { return nullptr; }
-    SynthBase* getSynth() { return synth_; }
+    //SynthBase* getSynth() { return synth_; }
     virtual void updateFullGui();
     virtual void updateGuiControl(const std::string& name, float value);
-    float getControlValue(const std::string& name);
-
+    void tryEnqueueProcessorInitQueue(juce::FixedSizeFunction<64, void()> callback);
+    void addProcessor(std::shared_ptr<juce::AudioProcessor> processor);
 
 
     void setFocus();
     void notifyChange();
     void notifyFresh();
     void openSaveDialog();
-    void externalPresetLoaded(File preset);
+    void externalPresetLoaded(juce::File preset);
     void setGuiSize(float scale);
     FullInterface* getGui() { return gui_.get(); }
     LEAF* getLEAF();

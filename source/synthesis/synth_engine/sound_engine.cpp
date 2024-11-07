@@ -16,7 +16,7 @@
 
 #include "sound_engine.h"
 #include "OscillatorModuleProcessor.h"
-
+#include "melatonin_audio_sparklines/melatonin_audio_sparklines.h"
 
 namespace electrosynth {
 
@@ -36,7 +36,7 @@ namespace electrosynth {
 //
 //
 //
-//
+//gg
 //    //SynthModule::init();
 //
 //    setOversamplingAmount(kDefaultOversamplingAmount, kDefaultSampleRate);
@@ -85,16 +85,18 @@ namespace electrosynth {
     last_sample_rate_ = sample_rate;
   }
 
-  void SoundEngine::process(int num_samples, juce::AudioSampleBuffer &buffer )
+  void SoundEngine::process(juce::AudioSampleBuffer &audio_buffer, juce::MidiBuffer& midi_buffer )
   {
     //VITAL_ASSERT(num_samples <= output()->buffer_size);
     juce::FloatVectorOperations::disableDenormalisedNumberSupport();
 
-    juce::MidiBuffer midimessages;
+    //juce::MidiBuffer midimessages;
+    juce::AudioSampleBuffer bu;
     for(auto proc : processors)
     {
-        proc->processBlock(buffer, midimessages);
+        proc->processBlock(audio_buffer, midi_buffer);
     }
+    melatonin::printSparkline(audio_buffer);
     if (getNumActiveVoices() == 0)
     {
 

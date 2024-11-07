@@ -98,7 +98,7 @@ void ModulesInterface::redoBackgroundImage() {
     Colour background = findColour(Skin::kBackground, true);
 
     int height = std::max(container_->getHeight(), getHeight());
-    int mult = getPixelMultiple();
+    int mult = juce::Desktop::getInstance().getDisplays().getDisplayForRect(getScreenBounds())->scale;// getPixelMultiple();
     Image background_image = Image(Image::ARGB, container_->getWidth() * mult, height * mult, true);
 
     Graphics background_graphics(background_image);
@@ -235,21 +235,24 @@ void ModulesInterface::initOpenGlComponents(OpenGlWrapper& open_gl) {
 
 void ModulesInterface::renderOpenGlComponents(OpenGlWrapper& open_gl, bool animate) {
     ScopedLock lock(open_gl_critical_section_);
-
+//    Component* top_level = getTopLevelComponent();
+//    Rectangle<int> global_bounds = top_level->getLocalArea(this, getLocalBounds());
+//    double display_scale = Desktop::getInstance().getDisplays().getDisplayForRect(top_level->getScreenBounds())->scale;
+//    return 1;//
+    // display_scale;// * (1.0f * global_bounds.getWidth()) / getWidth();
     OpenGlComponent::setViewPort(&viewport_, open_gl);
 
-    float image_width = electrosynth::utils::nextPowerOfTwo(background_.getImageWidth());
-    float image_height = electrosynth::utils::nextPowerOfTwo(background_.getImageHeight());
-    int mult = getPixelMultiple();
+    float image_width = background_.getImageWidth(); //electrosynth::utils::nextPowerOfTwo(background_.getImageWidth());
+    float image_height =background_.getImageHeight();  electrosynth::utils::nextPowerOfTwo(background_.getImageHeight());
+    int mult = juce::Desktop::getInstance().getDisplays().getDisplayForRect(getScreenBounds())->scale;// getPixelMultiple();
     float width_ratio = image_width / (container_->getWidth() * mult);
     float height_ratio = image_height / (viewport_.getHeight() * mult);
     float y_offset = (2.0f * viewport_.getViewPositionY()) / getHeight();
 
-    background_.setTopLeft(-1.0f, 1.0f + y_offset);
-    background_.setTopRight(-1.0 + 2.0f * width_ratio, 1.0f + y_offset);
-    background_.setBottomLeft(-1.0f, 1.0f - 2.0f * height_ratio + y_offset);
-    background_.setBottomRight(-1.0 + 2.0f * width_ratio, 1.0f - 2.0f * height_ratio + y_offset);
-
+        background_.setTopLeft(-1.0f, 1.0f + y_offset);
+        background_.setTopRight(-1.0 + 2.0f * width_ratio, 1.0f + y_offset);
+        background_.setBottomLeft(-1.0f, 1.0f - 2.0f * height_ratio + y_offset);
+        background_.setBottomRight(-1.0 + 2.0f * width_ratio, 1.0f - 2.0f * height_ratio + y_offset);
     background_.setColor(Colours::white);
     background_.drawImage(open_gl);
     SynthSection::renderOpenGlComponents(open_gl, animate);
@@ -277,17 +280,24 @@ ModuleSection* ModulesInterface::createNewObject (const juce::ValueTree& v)
     auto parent = findParentComponentOfClass<SynthGuiInterface>();
     LEAF* leaf = parent->getLEAF();
     std::any args = std::make_tuple( v,leaf );
-    juce::AudioProcessor *proc;
+
     try {
-      proc = factory.create(v.getProperty(IDs::type).toString().toStdString(),std::make_tuple( v,leaf ));
+
+      auto proc = factory.create(v.getProperty(IDs::type).toString().toStdString(),std::make_tuple( v,leaf ));
+      auto *module_section = new ModuleSection(v.getProperty(IDs::type).toString(), v, dynamic_cast<electrosynth::ParametersViewEditor*>(proc->createEditor()));
+      container_->addSubSection(module_section);
+      parent->tryEnqueueProcessorInitQueue(
+          [this, proc] {
+              SynthGuiInterface* _parent = findParentComponentOfClass<SynthGuiInterface>();
+              _parent->addProcessor(proc);
+          });
+      return module_section;
     } catch (const std::bad_any_cast& e) {
     std::cerr << "Error during object creation: " << e.what() << std::endl;
     }
-    auto *module_section = new ModuleSection(v.getProperty(IDs::type).toString(), v, dynamic_cast<electrosynth::ParametersViewEditor*>(proc->createEditor()));
-    container_->addSubSection(module_section);
 
-    return module_section;
 
+    return nullptr;
 }
 
 void ModulesInterface::newObjectAdded (ModuleSection*)

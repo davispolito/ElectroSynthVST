@@ -609,7 +609,7 @@ void SynthSection::paintJointControl(Graphics& g, int x, int y, int width, int h
 
 void SynthSection::placeKnobsInArea(Rectangle<int> area, std::vector<Component*> knobs) {
   int widget_margin = findValue(Skin::kWidgetMargin);
-  float component_width = (area.getWidth() - (knobs.size() + 1) * widget_margin) / (1.0f * knobs.size());
+  float component_width = 100; //(area.getWidth() - (knobs.size() + 1) * widget_margin) / (1.0f * knobs.size());
 
   int y = area.getY();
   int height = area.getHeight() - widget_margin;
@@ -624,15 +624,15 @@ void SynthSection::placeKnobsInArea(Rectangle<int> area, std::vector<Component*>
 }
 
 void SynthSection::lockCriticalSection() {
-  SynthGuiInterface* parent = findParentComponentOfClass<SynthGuiInterface>();
-  if (parent)
-    parent->getSynth()->getCriticalSection().enter();
+//  SynthGuiInterface* parent = findParentComponentOfClass<SynthGuiInterface>();
+//  if (parent)
+//    parent->getSynth()->getCriticalSection().enter();
 }
 
 void SynthSection::unlockCriticalSection() {
-  SynthGuiInterface* parent = findParentComponentOfClass<SynthGuiInterface>();
-  if (parent)
-    parent->getSynth()->getCriticalSection().exit();
+//  SynthGuiInterface* parent = findParentComponentOfClass<SynthGuiInterface>();
+//  if (parent)
+//    parent->getSynth()->getCriticalSection().exit();
 }
 
 float SynthSection::getTitleWidth() {
@@ -716,7 +716,8 @@ double SynthSection::getDisplayScale() const {
   Component* top_level = getTopLevelComponent();
   Rectangle<int> global_bounds = top_level->getLocalArea(this, getLocalBounds());
   double display_scale = Desktop::getInstance().getDisplays().getDisplayForRect(top_level->getScreenBounds())->scale;
-  return 1;// display_scale;// * (1.0f * global_bounds.getWidth()) / getWidth();
+  return 1;//
+  // display_scale;// * (1.0f * global_bounds.getWidth()) / getWidth();
 }
 
 int SynthSection::getPixelMultiple() const {
