@@ -55,14 +55,13 @@ struct OscillatorParams : public LEAFParams<_tOscModule >
     chowdsp::FloatParameter::Ptr harmonic {
         juce::ParameterID{"harmonic" , 100},
         "Harmonic",
-        chowdsp::ParamUtils::createNormalisableRange(-12.f, 12.f, 0.f, 1.f),
+        chowdsp::ParamUtils::createNormalisableRange(-16.f, 16.f, 0.f, 1.f),
         0.5f,
         &module->params[OscParams::OscHarmonic],
         [this](float val)
         {module->setterFunctions[OscParams::OscHarmonic](this->module,val);
         DBG("harm [0 - 1]" + juce::String(val) + " .. .  harm actual Val" + juce::String(this->module->harmonicMultiplier));
         },
-
         &electrosynth::utils::harmonicValToString,
         &electrosynth::utils::stringToHarmonicVal
     };
@@ -70,7 +69,7 @@ struct OscillatorParams : public LEAFParams<_tOscModule >
         juce::ParameterID{"pitch" , 100},
         "Pitch",
         chowdsp::ParamUtils::createNormalisableRange(-12.f, 12.f, 0.f,1.f),
-        0.8f,
+        0.5f,
         &module->params[OscParams::OscPitchOffset],
         [this](float val)
         {module->setterFunctions[OscParams::OscPitchOffset](this->module,val);
@@ -85,7 +84,7 @@ struct OscillatorParams : public LEAFParams<_tOscModule >
         juce::ParameterID{"pitch_fine" , 100},
         "Pitch Fine",
         chowdsp::ParamUtils::createNormalisableRange(-1.f, 1.f,0.f),
-        0.8f,
+        0.5f,
         &module->params[OscParams::OscPitchFine],
         [this]( float val)
         {module->setterFunctions[OscParams::OscPitchFine](this->module,val);
@@ -100,7 +99,7 @@ struct OscillatorParams : public LEAFParams<_tOscModule >
         juce::ParameterID{"freq_offset" , 100},
         "Freq Offset",
         chowdsp::ParamUtils::createNormalisableRange(-2000.f, 2000.f,0.f),
-        0.8f,
+        0.5f,
         &module->params[OscParams::OscFreqOffset],
         [this]( float val)
         {module->setterFunctions[OscParams::OscFreqOffset](this->module,val);
@@ -113,7 +112,7 @@ struct OscillatorParams : public LEAFParams<_tOscModule >
             juce::ParameterID{"shape" , 100},
             "Shape",
             chowdsp::ParamUtils::createNormalisableRange(0.0f, 1.f ,0.5f),
-            0.8f,
+            0.5f,
             &module->params[OscParams::OscShapeParam],
             [this]( float val)
             {module->setterFunctions[OscParams::OscShapeParam](this->module->theOsc,val);
@@ -151,7 +150,10 @@ public:
     void prepareToPlay (double sampleRate, int samplesPerBlock) override {};
     void releaseResources() override {}
     void processAudioBlock (juce::AudioBuffer<float>& buffer) override {};
-
+    bool acceptsMidi() const override
+    {
+       return true;
+    }
     juce::AudioProcessorEditor* createEditor() override {return new electrosynth::ParametersViewEditor{*this};};
     leaf::tProcessor processor;
 };

@@ -122,7 +122,7 @@ namespace electrosynth {
       force_inline int getOversamplingAmount() const { return last_oversampling_amount_; }
 
       void checkOversampling();
-      std::vector<std::shared_ptr<juce::AudioProcessor>> processors;
+      std::vector<std::vector<std::shared_ptr<juce::AudioProcessor>>> processors;
       char dummy_memory[32];
 
       LEAF leaf;

@@ -89,14 +89,20 @@ namespace electrosynth {
   {
     //VITAL_ASSERT(num_samples <= output()->buffer_size);
     juce::FloatVectorOperations::disableDenormalisedNumberSupport();
-
+    audio_buffer.clear();
     //juce::MidiBuffer midimessages;
     juce::AudioSampleBuffer bu;
-    for(auto proc : processors)
+    for(auto proc_chain: processors)
     {
-        proc->processBlock(audio_buffer, midi_buffer);
+      for(auto proc : proc_chain)
+      {
+          proc->processBlock(audio_buffer, midi_buffer);
+
+          //melatonin::printSparkline(audio_buffer);
+      }
+
     }
-    melatonin::printSparkline(audio_buffer);
+
     if (getNumActiveVoices() == 0)
     {
 

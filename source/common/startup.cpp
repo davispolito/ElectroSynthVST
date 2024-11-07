@@ -28,9 +28,10 @@ void Startup::doStartupChecks() {
 }
 
 bool Startup::isComputerCompatible() {
-  #if defined(__ARM_NEON__)
-  return true;
-  #else
-  return SystemStats::hasSSE2() || SystemStats::hasAVX2();
-  #endif
+//  #if defined(__ARM_NEON__)
+//  return true;
+//  #else
+//  return SystemStats::hasSSE2() || SystemStats::hasAVX2();
+//  #endif
+return true;
 }

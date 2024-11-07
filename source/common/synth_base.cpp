@@ -23,6 +23,7 @@
 
 #include "Identifiers.h"
 #include "load_save.h"
+#include "SimpleOscModule.h"
 SynthBase::SynthBase(AudioDeviceManager * deviceManager) : expired_(false), manager(deviceManager) {
 
    self_reference_ = std::make_shared<SynthBase*>();
@@ -148,7 +149,12 @@ void SynthBase::setMpeEnabled(bool enabled) {
 void SynthBase::addProcessor(std::shared_ptr<juce::AudioProcessor> processor)
 {
    processor->prepareToPlay(engine_->getSampleRate(), engine_->getBufferSize());
-   engine_->processors.push_back(static_cast<const std::shared_ptr<AudioProcessor>> (processor));
+
+   if (processor->acceptsMidi())
+   {
+       engine_->processors.emplace_back(std::initializer_list<std::shared_ptr<AudioProcessor>>{static_cast<const std::shared_ptr<AudioProcessor>> (processor)});
+   }
+
 }
 
 
