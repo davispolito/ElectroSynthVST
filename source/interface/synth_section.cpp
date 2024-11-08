@@ -607,14 +607,14 @@ void SynthSection::paintJointControl(Graphics& g, int x, int y, int width, int h
 
 
 
-void SynthSection::placeKnobsInArea(Rectangle<int> area, std::vector<Component*> knobs) {
+void SynthSection::placeKnobsInArea(Rectangle<int> area, std::vector<std::unique_ptr<Component>> &knobs) {
   int widget_margin = findValue(Skin::kWidgetMargin);
   float component_width = 100; //(area.getWidth() - (knobs.size() + 1) * widget_margin) / (1.0f * knobs.size());
 
   int y = area.getY();
   int height = area.getHeight() - widget_margin;
   float x = area.getX() + widget_margin;
-  for (Component* knob : knobs) {
+  for (const auto& knob : knobs) {
     int left = std::round(x);
     int right = std::round(x + component_width);
     if (knob)

@@ -68,11 +68,10 @@ private:
 
 // Define your map using initializer syntax
 constexpr TypeMap map{
-    TypeValuePair<_tLFOModule, 0>{},
-    TypeValuePair<_tOscModule, 1>{},
-    TypeValuePair<_tEnvModule, 2>{}
+    TypeValuePair<_tOscModule, 0>{},
+    TypeValuePair<_tFiltModule, 1>{},
 };
-const auto module_strings = std::to_array<std::string>({"LFOModule", "OscModule", "EnvModule"});
+const auto module_strings = std::to_array<std::string>({ "OscModule", "FiltModule"});
 
 constexpr std::array<float,MAX_NUM_PARAMS> createArray() {
     std::array<float, MAX_NUM_PARAMS> arr{};
@@ -82,6 +81,14 @@ constexpr std::array<float,MAX_NUM_PARAMS> createArray() {
     return arr;
 }
 constexpr std::array< float,MAX_NUM_PARAMS> empty_params =createArray();
+//constexpr std::array<float,MAX_NUM_PARAMS> createArray() {
+//    std::array<float, MAX_NUM_PARAMS> arr{};
+//    for (int i = 0; i < arr.size(); ++i) {
+//        arr[i] = 0.5;
+//    }
+//    return arr;
+//}
+//constexpr std::array< float,MAX_NUM_PARAMS> empty_params =createArray();
 template <typename T>
 struct LEAFParams : public chowdsp::ParamHolder
 {
@@ -92,8 +99,9 @@ struct LEAFParams : public chowdsp::ParamHolder
 
         void** yeet = reinterpret_cast<void**>(&module);
         module_init_map[map.get<T>()](reinterpret_cast<void**>(&module), mutable_params.data(), getNextUuid(leaf) , leaf);
+        proc_init_map[map.get<T>()](reinterpret_cast<void*>(module), &processor);
     }
-
+    leaf::tProcessor processor;
     T* module;
 };
     /**

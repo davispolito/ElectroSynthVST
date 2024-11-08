@@ -106,7 +106,7 @@ public:
    };
    AudioDeviceManager* manager;
 
-   void addProcessor(std::shared_ptr<juce::AudioProcessor> processor);
+   void addProcessor(std::shared_ptr<juce::AudioProcessor> processor, int voice_index);
 
    juce::ValueTree& getValueTree();
    juce::UndoManager& getUndoManager();

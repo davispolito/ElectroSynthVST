@@ -25,8 +25,8 @@ public:
     //void setFilterActive(bool active);
     juce::ValueTree state;
 private:
-    electrosynth::ParametersView* _view;
-    electrosynth::ParametersViewEditor* _view_editor;
+
+    std::unique_ptr<electrosynth::ParametersViewEditor> _view_editor;
 
 
 };

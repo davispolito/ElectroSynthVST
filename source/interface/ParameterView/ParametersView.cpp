@@ -64,6 +64,14 @@ namespace electrosynth {
                 DBG("create slider for " + param.paramID + "with parent " + parent.getName());
              }
 
+             ~SliderParameterComponent()
+             {
+//                auto parent = findParentComponentOfClass<SynthGuiInterface>();
+//
+//                parent->getOpenGlWrapper()
+
+             }
+
             void resized() override {
                 auto area = getBoundsInParent();
                 slider.setBounds(area);
@@ -97,8 +105,8 @@ namespace electrosynth {
                         [this, &listeners](auto &paramVec) {
                             for (auto &param: paramVec)
                             {
-                                comps.push_back(createParameterComp(listeners, param,*this).release());
-                                addAndMakeVisible(comps.back());
+                                comps.push_back(createParameterComp(listeners, param,*this));
+                                addAndMakeVisible(comps.back().get());
                             }
 
                         },
@@ -138,7 +146,7 @@ namespace electrosynth {
              {
                 return name;
              }
-             std::vector<juce::Component*> comps;
+             std::vector<std::unique_ptr<juce::Component>> comps;
             SynthSection &parent;
             juce::String name;
             juce::Grid grid;
@@ -176,7 +184,7 @@ namespace electrosynth {
                 [this, &paramListeners](auto &paramVec) {
                     for (auto &param: paramVec)
                     {
-                        comps.push_back(parameters_view_detail::createParameterComp(paramListeners, param,*this).release());
+                        comps.push_back(parameters_view_detail::createParameterComp(paramListeners, param,*this));
 
                     }
                 },

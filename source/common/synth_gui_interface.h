@@ -30,6 +30,7 @@ class AudioDeviceManager { };
 class LEAF;
 class FullInterface;
 class SynthBase;
+struct OpenGlWrapper;
 struct SynthGuiData {
   SynthGuiData(SynthBase* synth_base);
   juce::ValueTree& tree;
@@ -48,7 +49,7 @@ class SynthGuiInterface {
     virtual void updateFullGui();
     virtual void updateGuiControl(const std::string& name, float value);
     void tryEnqueueProcessorInitQueue(juce::FixedSizeFunction<64, void()> callback);
-    void addProcessor(std::shared_ptr<juce::AudioProcessor> processor);
+    void addProcessor(std::shared_ptr<juce::AudioProcessor> processor, int voice_index);
 
 
     void setFocus();
@@ -59,7 +60,7 @@ class SynthGuiInterface {
     void setGuiSize(float scale);
     FullInterface* getGui() { return gui_.get(); }
     LEAF* getLEAF();
-
+    OpenGlWrapper* getOpenGlWrapper();
   protected:
     SynthBase* synth_;
 

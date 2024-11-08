@@ -85,9 +85,9 @@ LEAF* SynthGuiInterface::getLEAF()
 void SynthGuiInterface::tryEnqueueProcessorInitQueue (juce::FixedSizeFunction<64, void()> callback) {
   synth_->processorInitQueue.try_enqueue(std::move(callback));
 }
-void SynthGuiInterface::addProcessor(std::shared_ptr<juce::AudioProcessor> processor)
+void SynthGuiInterface::addProcessor(std::shared_ptr<juce::AudioProcessor> processor, int voice_index)
 {
-  synth_->addProcessor (processor);
+  synth_->addProcessor (processor, voice_index);
 }
 //float SynthGuiInterface::getControlValue(const std::string& name) {
 //  return synth_->getControls()[name]->value();
@@ -113,7 +113,9 @@ void SynthGuiInterface::addProcessor(std::shared_ptr<juce::AudioProcessor> proce
 //  notifyModulationsChanged();
 //}
 
-
+OpenGlWrapper* SynthGuiInterface::getOpenGlWrapper() {
+  return &gui_->open_gl_;
+}
 
 
 

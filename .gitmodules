@@ -19,6 +19,7 @@
 [submodule "third_party/chowdsp_utils"]
 	path = third_party/chowdsp_utils
 	url = git@github.com:davispolito/chowdsp_utilsLEAF.git
+	branc = leaf
 [submodule "modules/melatonin_audio_sparklines"]
 	path = modules/melatonin_audio_sparklines
 	url = https://github.com/sudara/melatonin_audio_sparklines.git

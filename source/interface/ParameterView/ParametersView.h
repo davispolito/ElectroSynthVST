@@ -35,7 +35,7 @@ namespace electrosynth {
     private:
         struct Pimpl;
         std::unique_ptr<Pimpl> pimpl;
-        std::vector<juce::Component*> comps;
+        std::vector<std::unique_ptr<juce::Component>> comps;
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParametersView)
     };
     /** Clone of juce::GenericAudioProcessorEditor. */

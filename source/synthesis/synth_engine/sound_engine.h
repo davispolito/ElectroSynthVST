@@ -124,7 +124,7 @@ namespace electrosynth {
       void checkOversampling();
       std::vector<std::vector<std::shared_ptr<juce::AudioProcessor>>> processors;
       char dummy_memory[32];
-
+      juce::AudioSampleBuffer bu{2,1};
       LEAF leaf;
     private:
       void setOversamplingAmount(int oversampling_amount, int sample_rate);

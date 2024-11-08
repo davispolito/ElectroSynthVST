@@ -91,18 +91,22 @@ namespace electrosynth {
     juce::FloatVectorOperations::disableDenormalisedNumberSupport();
     audio_buffer.clear();
     //juce::MidiBuffer midimessages;
-    juce::AudioSampleBuffer bu;
-    for(auto proc_chain: processors)
-    {
-      for(auto proc : proc_chain)
+    for (int i = 0; i < audio_buffer.getNumSamples(); i++){
+      for (auto proc_chain : processors)
       {
-          proc->processBlock(audio_buffer, midi_buffer);
 
-          //melatonin::printSparkline(audio_buffer);
+          for (auto proc : proc_chain)
+          {
+              proc->processBlock (bu, midi_buffer);
+
+
+          }
+          audio_buffer.addSample(0,i,bu.getSample(0,0));
+          audio_buffer.addSample(1,i,bu.getSample(1,0));
       }
 
-    }
-
+  }
+  melatonin::printSparkline (audio_buffer);
     if (getNumActiveVoices() == 0)
     {
 

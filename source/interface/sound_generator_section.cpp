@@ -4,6 +4,7 @@
 #include "sound_generator_section.h"
 #include "ModuleSections/ModuleSection.h"
 #include "OscillatorModuleProcessor.h"
+#include "FilterModuleProcessor.h"
 #include "ParameterView/ParametersView.h"
 class ModulesContainer : public SynthSection {
 public:
@@ -77,7 +78,7 @@ ModulesInterface::ModulesInterface(juce::ValueTree &v) : SynthSection("modules")
     setOpaque(false);
 
     factory.registerType<OscillatorModuleProcessor, juce::ValueTree, LEAF*>("OscModule");
-
+    factory.registerType<FilterModuleProcessor, juce::ValueTree, LEAF*>("FiltModule");
 //    setSkinOverride(Skin::kAllEffects);
 }
 
@@ -151,6 +152,7 @@ PopupItems ModulesInterface::createPopupMenu()
 {
     PopupItems options;
     options.addItem(1, "add osc" );
+    options.addItem(2, "add filt");
     return options;
 }
 void ModulesInterface::mouseDown (const juce::MouseEvent& e)
@@ -169,6 +171,11 @@ void ModulesInterface::handlePopupResult(int result) {
     {
         juce::ValueTree t(IDs::MODULE);
         t.setProperty(IDs::type, "OscModule", nullptr);
+        parent.appendChild(t,nullptr);
+    } else if (result == 2)
+    {
+        juce::ValueTree t(IDs::MODULE);
+        t.setProperty(IDs::type, "FiltModule", nullptr);
         parent.appendChild(t,nullptr);
     }
 //    if (result == kArmMidiLearn)
@@ -289,7 +296,7 @@ ModuleSection* ModulesInterface::createNewObject (const juce::ValueTree& v)
       parent->tryEnqueueProcessorInitQueue(
           [this, proc] {
               SynthGuiInterface* _parent = findParentComponentOfClass<SynthGuiInterface>();
-              _parent->addProcessor(proc);
+              _parent->addProcessor(proc, 0);
           });
       return module_section;
     } catch (const std::bad_any_cast& e) {
@@ -307,7 +314,9 @@ void ModulesInterface::newObjectAdded (ModuleSection*)
 
 void ModulesInterface::deleteObject (ModuleSection* at)
 {
-
+    auto parent = findParentComponentOfClass<SynthGuiInterface>();
+    at->destroyOpenGlComponents(*parent->getOpenGlWrapper());
+    delete at;
 }
 
 void ModulesInterface::valueTreeRedirected (juce::ValueTree&)

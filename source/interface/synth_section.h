@@ -359,7 +359,7 @@ class SynthSection : public Component, public Slider::Listener,
                             SynthSlider* left, SynthSlider* right, Component* widget = nullptr);
     void placeTempoControls(int x, int y, int width, int height, SynthSlider* tempo, SynthSlider* sync);
     void placeRotaryOption(Component* option, SynthSlider* rotary);
-    void placeKnobsInArea(Rectangle<int> area, std::vector<Component*> knobs);
+    void placeKnobsInArea(Rectangle<int> area, std::vector<std::unique_ptr<Component>> &knobs);
 
     void lockCriticalSection();
     void unlockCriticalSection();

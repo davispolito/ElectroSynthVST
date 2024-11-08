@@ -146,13 +146,20 @@ void SynthBase::setMpeEnabled(bool enabled) {
 }
 
 
-void SynthBase::addProcessor(std::shared_ptr<juce::AudioProcessor> processor)
+void SynthBase::addProcessor(std::shared_ptr<juce::AudioProcessor> processor, int voice_index)
 {
    processor->prepareToPlay(engine_->getSampleRate(), engine_->getBufferSize());
 
    if (processor->acceptsMidi())
+   {   ///this is a crazy fucking line. i hope it's doing what i want
+       engine_->processors.emplace_back(std::initializer_list<std::shared_ptr<AudioProcessor>>{static_cast<const std::shared_ptr<AudioProcessor>> (processor)});
+   }
+   else if(engine_->processors.empty() || engine_->processors[voice_index].empty())
    {
        engine_->processors.emplace_back(std::initializer_list<std::shared_ptr<AudioProcessor>>{static_cast<const std::shared_ptr<AudioProcessor>> (processor)});
+   }else
+   {
+       engine_->processors[voice_index].push_back(processor);
    }
 
 }
