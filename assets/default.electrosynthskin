@@ -156,7 +156,21 @@
             "UI Action Button Hover": "ff64ffda",
             "UI Action Button Press": "ff11cbb2",
             "Widget Rounded Corner": 5.0
-        }
+        },
+        "Modulator Section": {
+                    "Body": "ff000000",
+                    "Background": "ffffffff",
+                               "Body Heading Background": "0",
+                               "Popup Selector Background": "ff14181b",
+                               "Widget Accent 1": "ffff1744",
+                               "Widget Accent 2": "ffff5252",
+                               "Widget Background": "ff161718",
+                               "Widget Line Width": 1.2000000476837158,
+                               "Widget Primary 1": "ffaa88ff",
+                               "Widget Primary 2": "64aa88ff",
+                               "Widget Secondary 1": "ff1de9b6",
+                               "Widget Secondary 2": "ff80d8ff"
+                }
    
 
     },

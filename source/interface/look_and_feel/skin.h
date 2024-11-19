@@ -33,7 +33,7 @@ class Skin {
       kOverlay,
       kPopupBrowser,
       kPresetBrowser,
-
+          kModulationSection,
       kNumSectionOverrides
     };
 

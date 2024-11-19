@@ -27,7 +27,8 @@ namespace {
     "Header",
         "Overlays",
         "Popup Browser",
-        "Preset Browser"
+        "Preset Browser",
+        "Modulator Section"
   };
 
   const std::string kValueNames[Skin::kNumSkinValueIds] = {

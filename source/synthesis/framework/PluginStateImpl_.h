@@ -70,6 +70,7 @@ private:
 constexpr TypeMap map{
     TypeValuePair<_tOscModule, 0>{},
     TypeValuePair<_tFiltModule, 1>{},
+    TypeValuePair<_tEnvModule, 1>{},
 };
 const auto module_strings = std::to_array<std::string>({ "OscModule", "FiltModule"});
 

@@ -195,7 +195,6 @@ public:
        return true;
     }
     juce::AudioProcessorEditor* createEditor() override {return new electrosynth::ParametersViewEditor{*this};};
-    leaf::tProcessor processor;
 };
 
 #endif //ELECTROSYNTH_OSCILLATORMODULEPROCESSOR_H
