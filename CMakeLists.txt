@@ -88,7 +88,9 @@ juce_add_plugin("${PROJECT_NAME}"
 
 # This lets us use our code in both the JUCE targets and our Test target
 # Without running into ODR violations
-add_library(SharedCode INTERFACE)
+add_library(SharedCode INTERFACE
+        source/interface/open_gl_combobox.cpp
+        source/interface/open_gl_combobox.h)
 
 # Enable fast math, C++20 and a few other target defaults
 include(SharedCodeDefaults)

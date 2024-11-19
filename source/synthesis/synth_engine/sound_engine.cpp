@@ -95,14 +95,14 @@ namespace electrosynth {
     for (int i = 0; i < audio_buffer.getNumSamples(); i++){
       for (auto proc_chain : processors)
       {
-
           for (auto proc : proc_chain)
           {
-              proc->processBlock (audio_buffer, midi_buffer);
+              proc->processBlock (bu, midi_buffer);
 
           }
-//          audio_buffer.addSample(0,i,bu.getSample(0,0));
-//          audio_buffer.addSample(1,i,bu.getSample(1,0));
+          audio_buffer.addSample(0,i,bu.getSample(0,0));
+          audio_buffer.addSample(1,i,bu.getSample(1,0));
+          bu.clear();
       }
 
   }
