@@ -3,12 +3,15 @@
 //
 #include "main_section.h"
 #include "synth_slider.h"
-
+#include "SoundModuleSection.h"
+#include "ModulationModuleSection.h"
 MainSection::MainSection(juce::ValueTree v, juce::UndoManager &um, OpenGlWrapper & open_gl, SynthGuiData* data) : SynthSection("main_section"), v(v), um(um)
 {
     //constructionSite_ = std::make_unique<ConstructionSite>(v, um, open_gl, data);
-    modules_interface = std::make_unique<ModulesInterface>(v);
-    addSubSection(modules_interface.get());
+    sound_interface = std::make_unique<SoundModuleSection>(v);
+    addSubSection(sound_interface.get());
+    modulation_interface = std::make_unique<ModulationModuleSection>(v);
+    addSubSection(modulation_interface.get());
     //addAndMakeVisible(constructionPort);
 //    ValueTree t(IDs::PREPARATION);
 //
@@ -49,7 +52,8 @@ void MainSection::resized()
     int right_x = width_left + padding;
 //    s->setBounds(0, 0, 100 *size_ratio_, 100* size_ratio_);
 //    button->setBounds(right_x, 100, 20, 20);
-    modules_interface->setBounds(0, 0, width,height);
+    sound_interface->setBounds(0, 0, width,height - 200);
+    modulation_interface->setBounds(0, sound_interface->getBottom(), width, 200);
     //constructionPort.setBounds(large_padding, 0,getDisplayScale()* width, getDisplayScale() * height);
     //constructionPort.setBounds(large_padding, 0,width, height);
     DBG (":");

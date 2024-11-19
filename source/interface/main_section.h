@@ -4,9 +4,14 @@
 
 #ifndef ELECTROSYNTH2_MAIN_SECTION_H
 #define ELECTROSYNTH2_MAIN_SECTION_H
+
 #include "synth_section.h"
-#include "sound_generator_section.h"
 #include "synth_slider.h"
+#include "SoundModuleSection.h"
+#include "ModulationModuleSection.h"
+//
+//class SoundModuleSection;
+//class ModulationModuleSection;
 class MainSection : public SynthSection
 {
 public:
@@ -21,20 +26,15 @@ public:
 
     void paintBackground(Graphics& g) override;
     void resized() override;
-//    void reset() override;
-//
-//    void buttonClicked(Button* clicked_button) override;
-//
-//    void notifyChange();
-//    void notifyFresh();
+
 
     void addListener(Listener* listener) { listeners_.push_back(listener); }
 private:
     juce::ValueTree v;
     juce::UndoManager &um;
-    std::unique_ptr<ModulesInterface> modules_interface;
+    std::unique_ptr<SoundModuleSection> sound_interface;
     std::vector<Listener*> listeners_;
-
+    std::unique_ptr<ModulationModuleSection> modulation_interface;
 };
 
 #endif //ELECTROSYNTH2_MAIN_SECTION_H

@@ -383,7 +383,7 @@ private:
 class OpenGlScrollBar : public juce::ScrollBar
 {
 public:
-  OpenGlScrollBar() : juce::ScrollBar(true), bar_(new OpenGlScrollQuad())
+  OpenGlScrollBar(bool isVertical=true) : juce::ScrollBar(isVertical), bar_(new OpenGlScrollQuad())
   {
     bar_->setTargetComponent(this);
     addAndMakeVisible(bar_.get());

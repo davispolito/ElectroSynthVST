@@ -59,7 +59,7 @@ struct OscillatorParams : public LEAFParams<_tOscModule >
 {
     OscillatorParams(LEAF* leaf) : LEAFParams<_tOscModule>(leaf)
     {
-       add(harmonic, pitchOffset, pitchFine, freqOffset, glide, shape, harmonicstepped, amp,oscType);
+       add(harmonic, pitchOffset, pitchFine, freqOffset, glide, shape, harmonicstepped, amp);
         //add(pitchOffset);
     }
     chowdsp::FloatParameter::Ptr harmonic {
@@ -215,7 +215,6 @@ public:
        return true;
     }
     juce::AudioProcessorEditor* createEditor() override {return new electrosynth::ParametersViewEditor{*this};};
-    leaf::tProcessor processor;
     chowdsp::ScopedCallbackList callbacks;
 };
 

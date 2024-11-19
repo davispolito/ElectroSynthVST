@@ -45,7 +45,7 @@ class SynthGuiInterface {
     virtual ~SynthGuiInterface();
 
     virtual juce::AudioDeviceManager* getAudioDeviceManager() { return nullptr; }
-    //SynthBase* getSynth() { return synth_; }
+    SynthBase* getSynth() { return synth_; }
     virtual void updateFullGui();
     virtual void updateGuiControl(const std::string& name, float value);
     void tryEnqueueProcessorInitQueue(juce::FixedSizeFunction<64, void()> callback);
