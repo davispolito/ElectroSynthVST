@@ -46,6 +46,15 @@ namespace electrosynth{
 //    OscType,
 //    OscNumParams
 //} OscParams;
+enum class FlagOscTypes{
+    OscTypeSawSquare =1,
+    OscTypeSineTri =2,
+    OscTypeSaw =4,
+    OscTypePulse = 8,
+    OscTypeSine = 16,
+    OscTypeTri = 32
+
+} ;
 struct OscillatorParams : public LEAFParams<_tOscModule >
 {
     OscillatorParams(LEAF* leaf) : LEAFParams<_tOscModule>(leaf)
@@ -163,6 +172,17 @@ struct OscillatorParams : public LEAFParams<_tOscModule >
             DBG("amp [0 - 1] " + juce::String(val) + ".. .... stepped harmonic actual " + juce::String(this->module->hStepped));
         }
     };
+
+    chowdsp::EnumChoiceParameter<FlagOscTypes>::Ptr oscType {
+        juce::ParameterID{"oscType" , 100},
+        "Oscillator Type",
+        FlagOscTypes::OscTypePulse,
+        &module->params[OscParams::OscType],
+        [this](float val){
+        //{module->setterFunctions[OscParams::OscType](this->module,val);
+           // DBG("harm [0 - 1]" + juce::String(val) + " .. .  harm actual Val" + juce::String(this->module->harmonicMultiplier));
+        }
+    };
     chowdsp::BoolParameter::Ptr pitchStepped
 {
     juce::ParameterID{"harmoniStepped" , 100},
@@ -195,6 +215,7 @@ public:
        return true;
     }
     juce::AudioProcessorEditor* createEditor() override {return new electrosynth::ParametersViewEditor{*this};};
+    chowdsp::ScopedCallbackList callbacks;
 };
 
 #endif //ELECTROSYNTH_OSCILLATORMODULEPROCESSOR_H

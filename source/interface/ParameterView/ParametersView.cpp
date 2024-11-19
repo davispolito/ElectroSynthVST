@@ -2,6 +2,7 @@
 #include "synth_section.h"
 #include "synth_slider.h"
 #include "open_gl_background.h"
+#include "open_gl_combobox.h"
 namespace electrosynth {
     namespace parameters_view_detail {
 
@@ -32,19 +33,22 @@ namespace electrosynth {
 
         class ChoiceParameterComponent : public juce::Component {
         public:
-            ChoiceParameterComponent(chowdsp::ChoiceParameter &param, chowdsp::ParameterListeners& listeners)
+            ChoiceParameterComponent(chowdsp::ChoiceParameter &param, chowdsp::ParameterListeners& listeners,SynthSection &parent)
                     : attachment(param, listeners, box, nullptr) {
                 addAndMakeVisible(box);
+                parent.addChildComponent (box);
+                parent.addOpenGlComponent (box.getImageComponent());
             }
 
             void resized() override {
-                auto area = getLocalBounds();
+                auto area = getBoundsInParent();
                 area.removeFromLeft(8);
                 box.setBounds(area.reduced(0, 10));
             }
 
         private:
-            juce::ComboBox box;
+
+            OpenGLComboBox box;
             chowdsp::ComboBoxAttachment attachment;
 
             JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ChoiceParameterComponent)
@@ -90,7 +94,7 @@ namespace electrosynth {
                 return std::make_unique<BooleanParameterComponent>(*boolParam, listeners,parent);
 
             if (auto *choiceParam = dynamic_cast<chowdsp::ChoiceParameter *> (&parameter))
-                return std::make_unique<ChoiceParameterComponent>(*choiceParam, listeners);
+                return std::make_unique<ChoiceParameterComponent>(*choiceParam, listeners,parent);
 
             if (auto *sliderParam = dynamic_cast<chowdsp::FloatParameter *> (&parameter))
                 return std::make_unique<SliderParameterComponent>(*sliderParam, listeners, parent);

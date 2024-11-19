@@ -98,13 +98,13 @@ namespace electrosynth {
           for (auto proc : proc_chain)
           {
               proc->processBlock (bu, midi_buffer);
-          }
 
+          }
+          audio_buffer.addSample(0,i,bu.getSample(0,0));
+          audio_buffer.addSample(1,i,bu.getSample(1,0));
+          bu.clear();
       }
 
-      audio_buffer.addSample(0,i,bu.getSample(0,0));//L
-      audio_buffer.addSample(1,i,bu.getSample(1,0));//R
-      bu.clear();
   }
   //melatonin::printSparkline (audio_buffer);
     if (getNumActiveVoices() == 0)
