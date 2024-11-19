@@ -19,7 +19,7 @@
 #include "../framework/note_handler.h"
 #include <leaf.h>
 #include <leaf-config.h>
-
+#include "buffer_debugger.h"
 
 
 namespace electrosynth {
@@ -138,7 +138,7 @@ namespace electrosynth {
 //      Decimator* decimator_;
 //      PeakMeter* peak_meter_;
 
-
+      std::unique_ptr<BufferDebugger> bufferDebugger;
       JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SoundEngine)
   };
 } // namespace vital

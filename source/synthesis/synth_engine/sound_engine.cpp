@@ -21,7 +21,7 @@
 namespace electrosynth {
 
   SoundEngine::SoundEngine() : /*voice_handler_(nullptr),*/
-                                last_oversampling_amount_(-1), last_sample_rate_(-1)
+                                last_oversampling_amount_(-1), last_sample_rate_(-1), bufferDebugger(std::make_unique<BufferDebugger>())
   {
       LEAF_init(&leaf, 44100.0f, dummy_memory, 32, [](){return (float)rand()/RAND_MAX;});
       //processors.push_back(std::make_shared<OscillatorModuleProcessor> (&leaf));
@@ -90,6 +90,7 @@ namespace electrosynth {
     //VITAL_ASSERT(num_samples <= output()->buffer_size);
     juce::FloatVectorOperations::disableDenormalisedNumberSupport();
     audio_buffer.clear();
+    bu.clear();
     //juce::MidiBuffer midimessages;
     for (int i = 0; i < audio_buffer.getNumSamples(); i++){
       for (auto proc_chain : processors)
@@ -97,20 +98,20 @@ namespace electrosynth {
 
           for (auto proc : proc_chain)
           {
-              proc->processBlock (bu, midi_buffer);
-
+              proc->processBlock (audio_buffer, midi_buffer);
 
           }
-          audio_buffer.addSample(0,i,bu.getSample(0,0));
-          audio_buffer.addSample(1,i,bu.getSample(1,0));
+//          audio_buffer.addSample(0,i,bu.getSample(0,0));
+//          audio_buffer.addSample(1,i,bu.getSample(1,0));
       }
 
   }
-  melatonin::printSparkline (audio_buffer);
+  //melatonin::printSparkline (audio_buffer);
     if (getNumActiveVoices() == 0)
     {
 
     }
+   bufferDebugger->capture("main out", audio_buffer.getReadPointer(0), audio_buffer.getNumSamples(), -20.f, 20.f);
   }
 
 

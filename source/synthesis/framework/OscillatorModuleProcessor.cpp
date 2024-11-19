@@ -35,6 +35,7 @@ void OscillatorModuleProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
 {
     int numSamples = buffer.getNumSamples();
     //buffer.clear();
+
 //    auto* samplesL = buffer.getReadPointer(0);
     auto* L = buffer.getWritePointer(0);
     auto* R = buffer.getWritePointer(1);
