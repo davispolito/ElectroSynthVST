@@ -91,8 +91,8 @@ juce_add_plugin("${PROJECT_NAME}"
 add_library(SharedCode INTERFACE
         source/interface/ModulationSection.cpp
         source/interface/ModulationSection.h
-        source/synthesis/framework/ModulatorBase.cpp
-        source/synthesis/framework/ModulatorBase.h
+        source/synthesis/framework/Modulators/ModulatorBase.cpp
+        source/synthesis/framework/Modulators/ModulatorBase.h
         source/interface/EnvParams.h
 )
 

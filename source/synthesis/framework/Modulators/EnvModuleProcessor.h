@@ -27,7 +27,7 @@ struct EnvParamHolder : public LEAFParams<_tEnvModule>
 
 
     // Attack param
-    chowdsp::TimeMsParameter::Ptr attackParam {
+    chowdsp::TimeMsParameter::Ptr attackParam  {
         juce::ParameterID { "attack", 100 },
         "Attack",
         chowdsp::ParamUtils::createNormalisableRange (0.0f, 10000.0f, 500.0f),
