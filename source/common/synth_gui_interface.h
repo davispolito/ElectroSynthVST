@@ -27,6 +27,7 @@ class AudioDeviceManager { };
 #include <juce_dsp/juce_dsp.h>
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_audio_processors/juce_audio_processors.h>
+
 class LEAF;
 class FullInterface;
 class SynthBase;
@@ -37,8 +38,7 @@ struct SynthGuiData {
   juce::UndoManager& um;
   SynthBase* synth;
 };
-
-
+class ModulatorBase;
 class SynthGuiInterface {
   public:
     SynthGuiInterface(SynthBase* synth, bool use_gui = true);
@@ -50,7 +50,7 @@ class SynthGuiInterface {
     virtual void updateGuiControl(const std::string& name, float value);
     void tryEnqueueProcessorInitQueue(juce::FixedSizeFunction<64, void()> callback);
     void addProcessor(std::shared_ptr<juce::AudioProcessor> processor, int voice_index);
-
+    void addModulationSource(std::shared_ptr<ModulatorBase> modSource, int voice_index);
 
     void setFocus();
     void notifyChange();

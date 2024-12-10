@@ -33,7 +33,7 @@ OscillatorModuleProcessor::OscillatorModuleProcessor(const juce::ValueTree &v, L
             float val =  (float)theType->getIndex() / (float)OscTypes::OscNumTypes;
             state.params.module->setterFunctions[OscParams::OscType](state.params.module,val);
             //also need to update the shape since the new oscillator type will default to its initial shape instead
-            state.params.module->setterFunctions[OscParams::OscShapeParam](state.params.module,state.params.module->params[OscShapeParam]);
+            state.params.module->setterFunctions[OscParams::OscShapeParam](state.params.module->theOsc, state.params.module->params[OscShapeParam]);
         })
     };
    //tOscModule_init(static_cast<void*>(module), {0, 0}, id, leaf)

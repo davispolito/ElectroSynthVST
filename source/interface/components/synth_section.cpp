@@ -22,7 +22,7 @@
 #include "open_gl_component.h"
 #include "synth_gui_interface.h"
 #include "synth_slider.h"
-
+#include "modulation_button.h"
 SynthSection::SynthSection(const String& name) : Component(name), parent_(nullptr), activator_(nullptr),
                                                  preset_selector_(nullptr), preset_selector_half_width_(false),
                                                  skin_override_(Skin::kNone), size_ratio_(1.0f),
@@ -609,10 +609,12 @@ void SynthSection::paintJointControl(Graphics& g, int x, int y, int width, int h
 
 void SynthSection::placeKnobsInArea(Rectangle<int> area, std::vector<std::unique_ptr<Component>> &knobs) {
   int widget_margin = findValue(Skin::kWidgetMargin);
-  float component_width = 100; //(area.getWidth() - (knobs.size() + 1) * widget_margin) / (1.0f * knobs.size());
+  float component_width = (area.getWidth() - (knobs.size() + 1) * widget_margin) / (1.0f * knobs.size());
+ //beign lazy and moving sliders
 
-  int y = area.getY();
-  int height = area.getHeight() - widget_margin;
+  int y = area.getY()/2;
+  int height = area.getHeight()/2 - widget_margin;
+  y += height;
   float x = area.getX() + widget_margin;
   for (const auto& knob : knobs) {
     int left = std::round(x);
@@ -664,6 +666,12 @@ float SynthSection::getPadding() {
 //  return (getKnobSectionHeight() - getTextComponentHeight()) / 2.0f;
 //}
 
+void SynthSection::addModulationButton(std::shared_ptr<ModulationButton> button, bool show) {
+//    modulation_buttons_[button->getName().toStdString()] = button;
+//    all_modulation_buttons_[button->getName().toStdString()] = button;
+    if (show)
+        addOpenGlComponent(std::static_pointer_cast<OpenGlImageComponent>(button));
+}
 
 
 float SynthSection::getWidgetMargin() {

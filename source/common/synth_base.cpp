@@ -24,6 +24,8 @@
 #include "Identifiers.h"
 #include "load_save.h"
 #include "SimpleOscModule.h"
+#include "Modulators/ModulatorBase.h"
+
 SynthBase::SynthBase(AudioDeviceManager * deviceManager) : expired_(false), manager(deviceManager) {
 
    self_reference_ = std::make_shared<SynthBase*>();
@@ -164,6 +166,11 @@ void SynthBase::addProcessor(std::shared_ptr<juce::AudioProcessor> processor, in
 
 }
 
+void SynthBase::addModulationSource(std::shared_ptr<ModulatorBase> modulationSource, int voice_index)
+{
+    modulationSource->prepareToPlay(engine_->getBufferSize(), engine_->getSampleRate());
+    engine_->modSources.emplace_back(std::initializer_list<std::shared_ptr<ModulatorBase>>{static_cast<const std::shared_ptr<ModulatorBase>> (modulationSource)});
+}
 
 bool SynthBase::loadFromValueTree(const ValueTree& state)
 {
@@ -280,7 +287,7 @@ void SynthBase::writeAudio(AudioSampleBuffer* buffer, int channels, int samples,
        float* channel_data = buffer->getWritePointer(channel, offset);
        //this line actually sends audio to the JUCE AudioSamplerBuffer to get audio out of the plugin
        for (int i = 0; i < samples; ++i) {
-           //channel_data[i] = engine_output[electrosynth::poly_float::kSize * i + channel];
+           //channel_data[i] = engine_output[float::kSize * i + channel];
            _ASSERT(std::isfinite(channel_data[i]));
        }
    }

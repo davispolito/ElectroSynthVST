@@ -34,6 +34,7 @@ class Skin {
       kPopupBrowser,
       kPresetBrowser,
           kModulationSection,
+          kModulationDragDrop,
       kNumSectionOverrides
     };
 

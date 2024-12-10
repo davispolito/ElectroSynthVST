@@ -306,8 +306,7 @@ class SynthSection : public Component, public Slider::Listener,
     bool isActive() const { return active_; }
     virtual void animate(bool animate);
 
-
-    void addModulationButton(ModulationButton* button, bool show = true);
+    void addModulationButton(std::shared_ptr<ModulationButton> button, bool show = true);
     void addSubSection(SynthSection* section, bool show = true);
     void removeSubSection(SynthSection* section);
     virtual void setScrollWheelEnabled(bool enabled);

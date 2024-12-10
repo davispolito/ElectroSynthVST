@@ -15,12 +15,12 @@
 */
 
 #include "FullInterface.h"
-#include "test_section.h"
-//#include "default_look_and_feel.h"
 #include "text_look_and_feel.h"
 #include "Identifiers.h"
 #include "about_section.h"
-#include "synth_slider.h"
+#include "synth_gui_interface.h"
+#include "SoundModuleSection.h"
+#include "ModulationModuleSection.h"
 FullInterface::FullInterface(SynthGuiData* synth_data) : SynthSection("full_interface"), width_(0), resized_width_(0),
                                                          last_render_scale_(0.0f), display_scale_(1.0f),
                                                          pixel_multiple_(1),unsupported_(false), animate_(true),
@@ -88,8 +88,6 @@ FullInterface::FullInterface(SynthGuiData* synth_data) : SynthSection("full_inte
     addSubSection(about_section_.get(), false);
     addChildComponent(about_section_.get());
 
-    test_section = std::make_unique<TestSection>();
-    addSubSection(test_section.get());
 
     about_section_->toFront(true);
     //setOpaque(true);

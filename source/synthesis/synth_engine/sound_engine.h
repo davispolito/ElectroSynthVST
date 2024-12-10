@@ -20,8 +20,7 @@
 #include <leaf.h>
 #include <leaf-config.h>
 #include "buffer_debugger.h"
-
-
+class ModulatorBase;
 namespace electrosynth {
 
     using AudioGraphIOProcessor = juce::AudioProcessorGraph::AudioGraphIOProcessor;
@@ -123,6 +122,7 @@ namespace electrosynth {
 
       void checkOversampling();
       std::vector<std::vector<std::shared_ptr<juce::AudioProcessor>>> processors;
+      std::vector<std::vector<std::shared_ptr<ModulatorBase>>> modSources;
       char dummy_memory[32];
       juce::AudioSampleBuffer bu{2,1};
       LEAF leaf;

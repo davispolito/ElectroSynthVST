@@ -2,6 +2,7 @@
 // Created by Davis Polito on 2/1/24.
 //
 #include "main_section.h"
+#include "synth_gui_interface.h"
 #include "synth_slider.h"
 #include "SoundModuleSection.h"
 #include "ModulationModuleSection.h"

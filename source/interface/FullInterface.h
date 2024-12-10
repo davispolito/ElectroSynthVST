@@ -12,7 +12,6 @@
 #include "synth_section.h"
 #include "melatonin_inspector/melatonin_inspector.h"
 #include "popup_browser.h"
-class TestSection;
 class AboutSection;
 struct SynthGuiData;
 class HeaderSection;
@@ -91,7 +90,6 @@ public :
     juce::CriticalSection open_gl_critical_section_;
     OpenGlWrapper open_gl_;
 private :
-    std::unique_ptr<TestSection> test_section;
     std::unique_ptr<AboutSection> about_section_;
     std::unique_ptr<MainSection> main_;
     std::unique_ptr<HeaderSection> header_;

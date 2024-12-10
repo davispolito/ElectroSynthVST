@@ -89,13 +89,7 @@ juce_add_plugin("${PROJECT_NAME}"
 # This lets us use our code in both the JUCE targets and our Test target
 # Without running into ODR violations
 add_library(SharedCode INTERFACE
-
-        source/interface/ModulationSection.cpp
-        source/interface/ModulationSection.h
-        source/synthesis/framework/Modulators/ModulatorBase.cpp
-        source/synthesis/framework/Modulators/ModulatorBase.h
-        source/interface/EnvParams.h
-
+        source/common/ModulationConnection.h
 
 )
 
@@ -122,6 +116,8 @@ include_directories(source/synthesis)
 include_directories(source/synthesis/framework)
 include_directories(source/synthesis/lookups)
 include_directories(source/synthesis/synth_engine)
+include_directories(source/interface/components)
+include_directories(source/interface/sections)
 include_directories(third_party/tracktion_engine/modules/tracktion_engine)
 # This is where you can set preprocessor definitions for JUCE and your plugin
 target_compile_definitions(SharedCode

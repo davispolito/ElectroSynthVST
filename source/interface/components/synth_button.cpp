@@ -20,8 +20,12 @@
 #include "FullInterface.h"
 
 #include "synth_section.h"
+#include "synth_gui_interface.h"
 
-
+void OpenGlShapeButtonComponent::parentHierarchyChanged() {
+        if (findParentComponentOfClass<SynthGuiInterface>())
+            setColors();
+}
 void OpenGlShapeButtonComponent::render(OpenGlWrapper& open_gl, bool animate) {
   incrementHover();
 

@@ -3,3 +3,8 @@
 //
 
 #include "EnvModuleProcessor.h"
+EnvModuleProcessor::EnvModuleProcessor(juce::ValueTree& vt, LEAF* leaf)
+    :ModulatorStateBase<PluginStateImpl_<EnvParamHolder, _tEnvModule>>(leaf,vt )
+{
+
+}

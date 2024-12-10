@@ -27,14 +27,16 @@ struct EnvParamHolder : public LEAFParams<_tEnvModule>
 
 
     // Attack param
-    chowdsp::TimeMsParameter::Ptr attackParam  {
+    chowdsp::TimeMsParameter::Ptr attackParam
+    {
         juce::ParameterID { "attack", 100 },
-        "Attack",
-        chowdsp::ParamUtils::createNormalisableRange (0.0f, 10000.0f, 500.0f),
-        1.0f,
-        &module->params[EnvParams::EnvAttack],
-            [this](float val)
-{module->setterFunctions[EnvParams::EnvAttack](this->module,val);
+            "Attack",
+            chowdsp::ParamUtils::createNormalisableRange (0.0f, 10000.0f, 500.0f),
+            1.0f,
+            &module->params[EnvParams::EnvAttack],
+            [this] (float val) {
+                module->setterFunctions[EnvParams::EnvAttack](this->module, val);
+            }
     };
 
 
@@ -46,7 +48,11 @@ struct EnvParamHolder : public LEAFParams<_tEnvModule>
         juce::ParameterID { "decay", 100 },
         "Decay",
         chowdsp::ParamUtils::createNormalisableRange (0.0f, 1000.0f, 500.0f),
-        0.0f
+        0.0f,
+        &module->params[EnvParams::EnvDecay],
+        [this] (float val) {
+            module->setterFunctions[EnvParams::EnvDecay](this->module, val);
+        }
     };
 
 
@@ -56,6 +62,10 @@ struct EnvParamHolder : public LEAFParams<_tEnvModule>
         "Sustain",
         chowdsp::ParamUtils::createNormalisableRange (0.0f, 1.0f, 0.5f),
         1.0f,
+        &module->params[EnvParams::EnvSustain],
+        [this] (float val) {
+            module->setterFunctions[EnvParams::EnvSustain](this->module, val);
+        },
         &chowdsp::ParamUtils::floatValToString,
         &chowdsp::ParamUtils::stringToFloatVal
     };
@@ -65,15 +75,28 @@ struct EnvParamHolder : public LEAFParams<_tEnvModule>
         juce::ParameterID { "release", 100 },
         "Release",
         chowdsp::ParamUtils::createNormalisableRange (0.0f, 10000.0f, 500.0f),
-        50.0f
+        50.0f,
+        &module->params[EnvParams::EnvRelease],
+        [this] (float val) {
+            module->setterFunctions[EnvParams::EnvRelease](this->module, val);
+        }
     };
 
 };
 #endif //ELECTROSYNTH_ENVPARAMS_H
 
 
-class EnvModuleProcessor : PluginStateImpl_<EnvParamHolder, _tEnvModule >
+class EnvModuleProcessor : public ModulatorStateBase<PluginStateImpl_<EnvParamHolder, _tEnvModule >>
 {
+public:
+    EnvModuleProcessor(juce::ValueTree&, LEAF* leaf);
+    void getNextAudioBlock (const juce::AudioSourceChannelInfo &bufferToFill) override {}
+    void prepareToPlay (int samplesPerBlock, double sampleRate ) override {}
+    void releaseResources() override {}
+    electrosynth::ParametersView* createEditor() override
+    {
+        return new electrosynth::ParametersView(state, state.params);
+    }
 };
 
 #endif //ELECTROSYNTH_ENVMODULEPROCESSOR_H

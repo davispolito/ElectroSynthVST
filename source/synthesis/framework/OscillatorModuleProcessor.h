@@ -59,7 +59,7 @@ struct OscillatorParams : public LEAFParams<_tOscModule >
 {
     OscillatorParams(LEAF* leaf) : LEAFParams<_tOscModule>(leaf)
     {
-       add(harmonic, pitchOffset, pitchFine, freqOffset, glide, shape, harmonicstepped, amp);
+       add(harmonic, pitchOffset, pitchFine, freqOffset, glide, shape, harmonicstepped, amp, oscType);
         //add(pitchOffset);
     }
     chowdsp::FloatParameter::Ptr harmonic {

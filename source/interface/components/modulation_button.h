@@ -19,7 +19,7 @@
 
 #include "open_gl_image_component.h"
 
-namespace vital {
+namespace electrosynth {
   struct ModulationConnection;
 } // namespace vital
 
@@ -52,7 +52,7 @@ class ModulationButton : public PlainShapeComponent {
         virtual ~Listener() = default;
 
         virtual void modulationConnectionChanged() { }
-        virtual void modulationDisconnected(vital::ModulationConnection* connection, bool last) { }
+        virtual void modulationDisconnected(electrosynth::ModulationConnection* connection, bool last) { }
         virtual void modulationSelected(ModulationButton* source) { }
         virtual void modulationLostFocus(ModulationButton* source) { }
         virtual void startModulationMap(ModulationButton* source, const MouseEvent& e) { }
@@ -98,7 +98,7 @@ class ModulationButton : public PlainShapeComponent {
     void overrideText(String text) { text_override_ = std::move(text); repaint(); }
 
   private:
-    void disconnectModulation(vital::ModulationConnection* connection);
+    void disconnectModulation(electrosynth::ModulationConnection* connection);
 
     String text_override_;
     SynthGuiInterface* parent_;

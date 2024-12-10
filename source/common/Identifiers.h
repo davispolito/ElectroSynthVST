@@ -18,6 +18,7 @@ namespace IDs
     DECLARE_ID (OUTPUT)
     DECLARE_ID (PIANO)
     DECLARE_ID (MODULE)
+    DECLARE_ID (MODULATOR)
     DECLARE_ID (PREPARATIONS)
 
     DECLARE_ID (name)
@@ -41,6 +42,8 @@ namespace IDs
     DECLARE_ID(isIn)
     DECLARE_ID (PORT)
     DECLARE_ID (chIdx)
+    DECLARE_ID (modAmt)
+    DECLARE_ID (isBipolar)
   //type
   //
 

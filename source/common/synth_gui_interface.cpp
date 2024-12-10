@@ -18,6 +18,7 @@
 
 #include "synth_base.h"
 #include "../synthesis/synth_engine/sound_engine.h"
+#include "Modulators/ModulatorBase.h"
 
 
 SynthGuiData::SynthGuiData(SynthBase* synth_base) : synth(synth_base),
@@ -88,6 +89,11 @@ void SynthGuiInterface::tryEnqueueProcessorInitQueue (juce::FixedSizeFunction<64
 void SynthGuiInterface::addProcessor(std::shared_ptr<juce::AudioProcessor> processor, int voice_index)
 {
   synth_->addProcessor (processor, voice_index);
+}
+
+void SynthGuiInterface::addModulationSource (std::shared_ptr<ModulatorBase> modSource, int voice_index)
+{
+    synth_->addModulationSource(modSource,voice_index);
 }
 //float SynthGuiInterface::getControlValue(const std::string& name) {
 //  return synth_->getControls()[name]->value();

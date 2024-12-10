@@ -6,12 +6,11 @@
 #define ELECTROSYNTH2_MAIN_SECTION_H
 
 #include "synth_section.h"
-#include "synth_slider.h"
-#include "SoundModuleSection.h"
-#include "ModulationModuleSection.h"
+
 //
-//class SoundModuleSection;
-//class ModulationModuleSection;
+class SoundModuleSection;
+class ModulationModuleSection;
+struct SynthGuiData ;
 class MainSection : public SynthSection
 {
 public:

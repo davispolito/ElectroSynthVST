@@ -29,6 +29,7 @@ public:
 
     PopupItems createPopupMenu() override;
     void handlePopupResult(int result) override;
+    Factory<juce::AudioProcessor> factory;
 };
 
 #endif //ELECTROSYNTH_SOUNDMODULESECTION_H

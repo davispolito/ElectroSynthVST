@@ -25,7 +25,7 @@
 #include <set>
 #include <string>
 #include "leaf.h"
-
+class ModulatorBase;
 class SynthGuiInterface;
 template<typename T>
 class BKSamplerSound;
@@ -107,6 +107,7 @@ public:
    AudioDeviceManager* manager;
 
    void addProcessor(std::shared_ptr<juce::AudioProcessor> processor, int voice_index);
+    void addModulationSource(std::shared_ptr<ModulatorBase> processor, int voice_index);
 
    juce::ValueTree& getValueTree();
    juce::UndoManager& getUndoManager();

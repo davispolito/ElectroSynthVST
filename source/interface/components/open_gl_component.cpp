@@ -172,6 +172,7 @@ void OpenGlComponent::addBottomRoundedCorners() {
 void OpenGlComponent::init(OpenGlWrapper& open_gl) {
   if (corners_)
     corners_->init(open_gl);
+
 }
 
 void OpenGlComponent::renderCorners(OpenGlWrapper& open_gl, bool animate, juce::Colour color, float rounding) {

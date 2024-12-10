@@ -19,7 +19,6 @@
 
 #include "open_gl_image_component.h"
 #include "open_gl_multi_quad.h"
-#include "synth_gui_interface.h"
 
 class OpenGlShapeButtonComponent : public OpenGlComponent {
   public:
@@ -31,10 +30,7 @@ class OpenGlShapeButtonComponent : public OpenGlComponent {
       shape_.setScissor(true);
     }
 
-    void parentHierarchyChanged() override {
-      if (findParentComponentOfClass<SynthGuiInterface>())
-        setColors();
-    }
+    void parentHierarchyChanged() override ;
 
     void setColors() {
       off_normal_color_ = button_->findColour(Skin::kIconButtonOff, true);

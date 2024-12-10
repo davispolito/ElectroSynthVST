@@ -4,18 +4,22 @@
 
 
 #include "ModulationSection.h"
-ModulationSection::ModulationSection(juce::String name, const juce::ValueTree &v, electrosynth::ParametersViewEditor* editor) : SynthSection(name), state(v), _view_editor(editor)
+#include "modulation_button.h"
+ModulationSection::ModulationSection(juce::String name, const juce::ValueTree &v, electrosynth::ParametersView* editor) : SynthSection(name), state(v), _view(editor),
+mod_button(new ModulationButton(name + "mod_button"))
 {
-
-
-    addSubSection(&_view_editor->view);
+    addModulationButton(mod_button );
+    addAndMakeVisible(mod_button.get());
+    mod_button->setAlwaysOnTop(true);
+    addSubSection(_view.get());
 }
 
 ModulationSection::~ModulationSection() = default;
 
 void ModulationSection::paintBackground(juce::Graphics &g)
 {
-    SynthSection::paintBackground(g);
+        SynthSection::paintBackground(g);
+    // g.fillAll(juce::Colours::green);
 }
 
 void ModulationSection::resized()
@@ -27,7 +31,8 @@ void ModulationSection::resized()
     Rectangle<int> bounds = getLocalBounds().withLeft(title_width);
     Rectangle<int> knobs_area = getDividedAreaBuffered(bounds, 2, 1, widget_margin);
     Rectangle<int> settings_area = getDividedAreaUnbuffered(bounds, 4, 0, widget_margin);
-    _view_editor->view.setBounds(getLocalBounds());
+    _view->setBounds(getLocalBounds());
+    mod_button->setBounds(0,0,40,40);
     int knob_y2 =0;
     SynthSection::resized();
 }

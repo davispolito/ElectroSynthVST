@@ -10,10 +10,11 @@
     #include "PluginStateImpl_.h"
     #include "ParameterView/ParametersView.h"
     #include <juce_gui_basics/juce_gui_basics.h>
+class ModulationButton;
 class ModulationSection : public SynthSection
 {
 public:
-    ModulationSection(juce::String name, const juce::ValueTree &, electrosynth::ParametersViewEditor* editor);
+    ModulationSection(juce::String name, const juce::ValueTree &, electrosynth::ParametersView* editor);
 
     virtual ~ModulationSection();
 
@@ -28,8 +29,8 @@ public:
     juce::ValueTree state;
 private:
 
-    std::unique_ptr<electrosynth::ParametersViewEditor> _view_editor;
-
+    std::unique_ptr<electrosynth::ParametersView> _view;
+    std::shared_ptr<ModulationButton> mod_button;
 
 };
 

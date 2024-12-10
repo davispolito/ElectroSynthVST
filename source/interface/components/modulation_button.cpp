@@ -271,7 +271,7 @@ void ModulationButton::mouseUp(const MouseEvent& e) {
 void ModulationButton::mouseEnter(const MouseEvent& e) {
   mouse_state_ = kHover;
   drag_drop_color_ = findColour(Skin::kLightenScreen, true);
-//  show_drag_drop_ = parent_->getSynth()->getSourceConnections(getName().toStdString()).empty();
+  show_drag_drop_ = true;//parent_->getSynth()->getSourceConnections(getName().toStdString()).empty();
   setActive(show_drag_drop_);
   redrawImage(true);
 }
@@ -327,7 +327,7 @@ void ModulationButton::setForceEnableModulationSource() {
 //    parent_->getSynth()->forceShowModulation(getName().toStdString(), active_modulation_);
 }
 
-void ModulationButton::disconnectModulation(vital::ModulationConnection* connection) {
+void ModulationButton::disconnectModulation(electrosynth::ModulationConnection* connection) {
 ////  int modulations_left = parent_->getSynth()->getNumModulations(connection->destination_name);
 //
 //  for (Listener* listener : listeners_) {

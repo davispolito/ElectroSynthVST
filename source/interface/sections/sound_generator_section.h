@@ -109,7 +109,7 @@ public:
     void paintBackground(juce::Graphics& g) override;
     void paintChildrenShadows(juce::Graphics& g) override { }
     void resized() override;
-    void redoBackgroundImage();
+    virtual void redoBackgroundImage();
 
 
     void setFocus() { grabKeyboardFocus(); }
@@ -120,7 +120,7 @@ public:
     void destroyOpenGlComponents(OpenGlWrapper& open_gl) override;
 
     void scrollBarMoved(ScrollBar* scroll_bar, double range_start) override;
-    void setScrollBarRange();
+    virtual void setScrollBarRange();
 
     void addListener(Listener* listener) { listeners_.push_back(listener); }
     void effectsScrolled(int position) override {
@@ -145,7 +145,7 @@ protected:
 //    std::vector<std::unique_ptr<SynthSection>> modules;
 
 
-    Factory<juce::AudioProcessor> factory;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModulesInterface)
 };
 template<typename T>

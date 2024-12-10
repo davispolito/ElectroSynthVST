@@ -17,6 +17,7 @@
 #include "sound_engine.h"
 #include "OscillatorModuleProcessor.h"
 #include "melatonin_audio_sparklines/melatonin_audio_sparklines.h"
+#include "Modulators/ModulatorBase.h"
 
 namespace electrosynth {
 

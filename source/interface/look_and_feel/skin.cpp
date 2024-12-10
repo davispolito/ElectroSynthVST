@@ -18,7 +18,6 @@
 #include "BinaryData.h"
 #include "default_look_and_feel.h"
 #include "../FullInterface.h"
-#include "../synth_section.h"
 
 namespace {
   const std::string kOverrideNames[Skin::kNumSectionOverrides] = {
@@ -28,6 +27,7 @@ namespace {
         "Overlays",
         "Popup Browser",
         "Preset Browser",
+        "Modulation Drag Drop"
         "Modulator Section"
   };
 

@@ -2,38 +2,40 @@
 // Created by Davis Polito on 11/19/24.
 //
 
-
-#include "ModulationModuleSection.h"
-#include "ModulationSection.h"
-ModulationModuleSection::ModulationModuleSection(ValueTree &v) : ModulesInterface<ModulationSection>(v)
+#include "SoundModuleSection.h"
+#include "OscillatorModuleProcessor.h"
+#include "FilterModuleProcessor.h"
+#include  "ModuleSections/ModuleSection.h"
+#include "synth_gui_interface.h"
+SoundModuleSection::SoundModuleSection(ValueTree &v) : ModulesInterface<ModuleSection>(v)
 {
-    scroll_bar_ = std::make_unique<OpenGlScrollBar>(false);
+    scroll_bar_ = std::make_unique<OpenGlScrollBar>();
     scroll_bar_->setShrinkLeft(true);
     addAndMakeVisible(scroll_bar_.get());
     addOpenGlComponent(scroll_bar_->getGlComponent());
     scroll_bar_->addListener(this);
-    setSkinOverride(Skin::kModulationSection);
-    Skin default_skin;
-    setSkinValues(default_skin,false);
+    factory.registerType<OscillatorModuleProcessor, juce::ValueTree, LEAF*>("OscModule");
+    factory.registerType<FilterModuleProcessor, juce::ValueTree, LEAF*>("FiltModule");
 }
-ModulationModuleSection::~ModulationModuleSection()
+SoundModuleSection::~SoundModuleSection()
 {
     freeObjects();
 }
-void ModulationModuleSection::handlePopupResult(int result) {
+
+void SoundModuleSection::handlePopupResult(int result) {
 
     //std::vector<vital::ModulationConnection*> connections = getConnections();
-//    if (result == 1 )
-//    {
-//        juce::ValueTree t(IDs::MODULE);
-//        t.setProperty(IDs::type, "OscModule", nullptr);
-//        parent.appendChild(t,nullptr);
-//    } else if (result == 2)
-//    {
-//        juce::ValueTree t(IDs::MODULE);
-//        t.setProperty(IDs::type, "FiltModule", nullptr);
-//        parent.appendChild(t,nullptr);
-//    }
+    if (result == 1 )
+    {
+        juce::ValueTree t(IDs::MODULE);
+        t.setProperty(IDs::type, "OscModule", nullptr);
+        parent.appendChild(t,nullptr);
+    } else if (result == 2)
+    {
+        juce::ValueTree t(IDs::MODULE);
+        t.setProperty(IDs::type, "FiltModule", nullptr);
+        parent.appendChild(t,nullptr);
+    }
     //    if (result == kArmMidiLearn)
     //        synth->armMidiLearn(getName().toStdString());
     //    else if (result == kClearMidiLearn)
@@ -58,7 +60,7 @@ void ModulationModuleSection::handlePopupResult(int result) {
 }
 
 
-void ModulationModuleSection::setEffectPositions() {
+void SoundModuleSection::setEffectPositions() {
     if (getWidth() <= 0 || getHeight() <= 0)
         return;
 
@@ -91,39 +93,41 @@ void ModulationModuleSection::setEffectPositions() {
     setScrollBarRange();
     repaintBackground();
 }
-PopupItems ModulationModuleSection::createPopupMenu()
+PopupItems SoundModuleSection::createPopupMenu()
 {
     PopupItems options;
-    options.addItem(1, "add Env" );
+    options.addItem(1, "add osc" );
+    options.addItem(2, "add filt");
     return options;
 }
 
-ModulationSection* ModulationModuleSection::createNewObject (const juce::ValueTree& v)
+ModuleSection* SoundModuleSection::createNewObject (const juce::ValueTree& v)
 
 {
-//    auto parent = findParentComponentOfClass<SynthGuiInterface>();
-//    LEAF* leaf = parent->getLEAF();
-//    std::any args = std::make_tuple( v,leaf );
-//
-//    try {
-//
-//        auto proc = factory.create(v.getProperty(IDs::type).toString().toStdString(),std::make_tuple( v,leaf ));
-//        auto *module_section = new ModuleSection(v.getProperty(IDs::type).toString(), v, dynamic_cast<electrosynth::ParametersViewEditor*>(proc->createEditor()));
-//        container_->addSubSection(module_section);
-//        parent->tryEnqueueProcessorInitQueue(
-//            [this, proc] {
-//                SynthGuiInterface* _parent = findParentComponentOfClass<SynthGuiInterface>();
-//                _parent->addProcessor(proc, 0);
-//            });
-//        return module_section;
-//    } catch (const std::bad_any_cast& e) {
-//        std::cerr << "Error during object creation: " << e.what() << std::endl;
-//    }
-//
-//
-//    return nullptr;
+    auto parent = findParentComponentOfClass<SynthGuiInterface>();
+    LEAF* leaf = parent->getLEAF();
+    std::any args = std::make_tuple( v,leaf );
+
+    try {
+
+        auto proc = factory.create(v.getProperty(IDs::type).toString().toStdString(),std::make_tuple( v,leaf ));
+        auto *module_section = new ModuleSection(v.getProperty(IDs::type).toString(), v, dynamic_cast<electrosynth::ParametersViewEditor*>(proc->createEditor()));
+        container_->addSubSection(module_section);
+        parent->tryEnqueueProcessorInitQueue(
+            [this, proc] {
+                SynthGuiInterface* _parent = findParentComponentOfClass<SynthGuiInterface>();
+                _parent->addProcessor(proc, 0);
+            });
+        return module_section;
+    } catch (const std::bad_any_cast& e) {
+        std::cerr << "Error during object creation: " << e.what() << std::endl;
+    }
+
+
+    return nullptr;
 }
-void ModulationModuleSection::deleteObject (ModulationSection* at)
+
+void SoundModuleSection::deleteObject (ModuleSection* at)
 {
     auto parent = findParentComponentOfClass<SynthGuiInterface>();
     at->destroyOpenGlComponents(*parent->getOpenGlWrapper());
