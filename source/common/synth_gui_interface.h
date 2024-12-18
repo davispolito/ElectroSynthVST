@@ -39,6 +39,11 @@ struct SynthGuiData {
   SynthBase* synth;
 };
 class ModulatorBase;
+class ProcessorBase;
+namespace electrosynth
+{
+    class ModulationConnection;
+}
 class SynthGuiInterface {
   public:
     SynthGuiInterface(SynthBase* synth, bool use_gui = true);
@@ -49,9 +54,12 @@ class SynthGuiInterface {
     virtual void updateFullGui();
     virtual void updateGuiControl(const std::string& name, float value);
     void tryEnqueueProcessorInitQueue(juce::FixedSizeFunction<64, void()> callback);
-    void addProcessor(std::shared_ptr<juce::AudioProcessor> processor, int voice_index);
+    void addProcessor(std::shared_ptr<ProcessorBase> processor, int voice_index);
     void addModulationSource(std::shared_ptr<ModulatorBase> modSource, int voice_index);
-
+    void connectModulation(std::string source, std::string destination);
+    void disconnectModulation(std::string source, std::string destination);
+    void disconnectModulation(electrosynth::ModulationConnection* connection);
+    void notifyModulationsChanged();
     void setFocus();
     void notifyChange();
     void notifyFresh();

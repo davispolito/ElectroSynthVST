@@ -3,6 +3,7 @@
 //
 
 #include "OscillatorModuleProcessor.h"
+#include "Identifiers.h"
 float electrosynth::utils::stringToHarmonicVal(const juce::String &s){
     if(!s.contains("/"))
     {
@@ -23,10 +24,11 @@ juce::String electrosynth::utils::harmonicValToString(float harmonic)
     else
         return juce::String(round(harmonic));
 }
-OscillatorModuleProcessor::OscillatorModuleProcessor(const juce::ValueTree &v, LEAF *leaf) :_PluginBase<PluginStateImpl_<OscillatorParams, _tOscModule>, _tOscModule>(leaf)
+OscillatorModuleProcessor::OscillatorModuleProcessor(const juce::ValueTree &v, LEAF *leaf) :ProcessorStateBase<PluginStateImpl_<OscillatorParams, _tOscModule>>(leaf,v)
 
 
 {
+
     callbacks += {
         state.addParameterListener (*state.params.oscType, chowdsp::ParameterListenerThread::AudioThread, [this] {
             auto theType = state.params.oscType.get();
@@ -36,6 +38,7 @@ OscillatorModuleProcessor::OscillatorModuleProcessor(const juce::ValueTree &v, L
             state.params.module->setterFunctions[OscParams::OscShapeParam](state.params.module->theOsc, state.params.module->params[OscShapeParam]);
         })
     };
+    vt.setProperty(IDs::uuid, state.params.processor.processorUniqueID, nullptr);
    //tOscModule_init(static_cast<void*>(module), {0, 0}, id, leaf)
     //tOscModule_processorInit(state.params.module, &processor);
 }

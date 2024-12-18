@@ -25,7 +25,9 @@
 #include "load_save.h"
 #include "SimpleOscModule.h"
 #include "Modulators/ModulatorBase.h"
-
+#include "ModulationWrapper.h"
+#include "Processors/ProcessorBase.h"
+#include "constants.h"
 SynthBase::SynthBase(AudioDeviceManager * deviceManager) : expired_(false), manager(deviceManager) {
 
    self_reference_ = std::make_shared<SynthBase*>();
@@ -34,7 +36,7 @@ SynthBase::SynthBase(AudioDeviceManager * deviceManager) : expired_(false), mana
    engine_ = std::make_unique<electrosynth::SoundEngine>();
 
 
-
+   mod_connections_.reserve(electrosynth::kMaxModulationConnections);
 
 
 
@@ -115,11 +117,36 @@ void SynthBase::presetChangedThroughMidi(File preset) {
 //}
 
 
+void SynthBase::disconnectModulation(electrosynth::ModulationConnection* connection) {
+    if (mod_connections_.count(connection) == 0)
+        return;
+
+    //vital::modulation_change change = createModulationChange(connection);
+    connection->source_name = "";
+    connection->destination_name = "";
+
+    mod_connections_.remove(connection);
+    //change.disconnecting = true;
+    //modulation_change_queue_.enqueue(change);
+}
+
+void SynthBase::disconnectModulation(const std::string& source, const std::string& destination) {
+    electrosynth::ModulationConnection* connection = getConnection(source, destination);
+    if (connection)
+        disconnectModulation(connection);
+}
 
 
 
 
-
+int SynthBase::getNumModulations(const std::string& destination) {
+    int connections = 0;
+    for (electrosynth::ModulationConnection* connection : mod_connections_) {
+        if (connection->destination_name == destination)
+            connections++;
+    }
+    return connections;
+}
 
 
 
@@ -148,17 +175,17 @@ void SynthBase::setMpeEnabled(bool enabled) {
 }
 
 
-void SynthBase::addProcessor(std::shared_ptr<juce::AudioProcessor> processor, int voice_index)
+void SynthBase::addProcessor(std::shared_ptr<ProcessorBase> processor, int voice_index)
 {
    processor->prepareToPlay(engine_->getSampleRate(), engine_->getBufferSize());
 
-   if (processor->acceptsMidi())
-   {   ///this is a crazy fucking line. i hope it's doing what i want
-       engine_->processors.emplace_back(std::initializer_list<std::shared_ptr<AudioProcessor>>{static_cast<const std::shared_ptr<AudioProcessor>> (processor)});
-   }
-   else if(engine_->processors.empty() || engine_->processors[voice_index].empty())
+//   if ()
+//   {   ///this is a crazy fucking line. i hope it's doing what i want
+//       engine_->processors.emplace_back(std::initializer_list<std::shared_ptr<ProcessorBase>>{static_cast<const std::shared_ptr<ProcessorBase>> (processor)});
+//   }
+    if(engine_->processors.empty() || engine_->processors[voice_index].empty())
    {
-       engine_->processors.emplace_back(std::initializer_list<std::shared_ptr<AudioProcessor>>{static_cast<const std::shared_ptr<AudioProcessor>> (processor)});
+       engine_->processors.emplace_back(std::initializer_list<std::shared_ptr<ProcessorBase>>{static_cast<const std::shared_ptr<ProcessorBase>> (processor)});
    }else
    {
        engine_->processors[voice_index].push_back(processor);
@@ -253,7 +280,9 @@ void SynthBase::processAudio(AudioSampleBuffer* buffer, int channels, int sample
    AudioThreadAction action;
    while (processorInitQueue.try_dequeue (action))
        action();
-   //engine_->process(samples, *buffer);
+   AudioThreadAction action_;
+   while (modulationInitQueue.try_dequeue (action_))
+       action();//engine_->process(samples, *buffer);
    writeAudio(buffer, channels, samples, offset);
 }
 void SynthBase::processAudioAndMidi(juce::AudioBuffer<float>& audio_buffer, juce::MidiBuffer& midi_buffer) //, int channels, int samples, int offset, int start_sample = 0, int end_sample = 0)
@@ -451,4 +480,76 @@ juce::ValueTree& SynthBase::getValueTree()
 juce::UndoManager& SynthBase::getUndoManager()
 {
    return um;
+}
+std::vector<electrosynth::ModulationConnection*> SynthBase::getSourceConnections(const std::string& source) {
+    std::vector<electrosynth::ModulationConnection*> connections;
+    for (auto& connection : mod_connections_) {
+        if (connection->source_name == source)
+            connections.push_back(connection);
+    }
+    return connections;
+}
+std::vector<electrosynth::ModulationConnection*> SynthBase::getDestinationConnections(const std::string& destination) {
+    std::vector<electrosynth::ModulationConnection*> connections;
+    for (auto& connection : mod_connections_) {
+        if (connection->destination_name == destination)
+            connections.push_back(connection);
+    }
+    return connections;
+}
+std::unique_ptr<electrosynth::ModulationConnection> SynthBase::createConnection(const std::string& from, const std::string& to)
+{
+    leaf::tMapping newMapping;
+
+    tMapping_init(&newMapping, *this->getLeaf());
+    std::stringstream ss(from);
+    std::string proc_string;
+    std::getline(ss,proc_string,'_');
+
+    leaf::Processor* source = engine_->getLEAFProcessor(proc_string);
+    auto [dest, index] = engine_->getParameterInfo(to);
+
+
+}
+electrosynth::ModulationConnection* SynthBase::getConnection(const std::string& source, const std::string& destination) {
+    for (auto& connection : mod_connections_) {
+        if (connection->source_name == source && connection->destination_name == destination)
+            return connection;
+    }
+    return nullptr;
+}
+bool SynthBase::connectModulation(const std::string& source, const std::string& destination) {
+    electrosynth::ModulationConnection* connection = getConnection(source, destination);
+    bool create = connection == nullptr;
+    if (create)
+    {
+        connection = getModulationBank().createConnection (source, destination);
+        tree.appendChild(connection->state, nullptr);
+    }
+
+
+       // mod_connections_.emplace_back(std::make_unique<electrosynth::ModulationConnection>(source,destination,*getLeaf(),v));
+        //make a call to processblock quque to actaully add or change the modulation
+
+    if (connection)
+        connectModulation(connection);
+    return create;
+}
+
+electrosynth::ModulationConnectionBank& SynthBase::getModulationBank() {
+    return engine_->getModulationBank();
+}
+
+void SynthBase::connectModulation(electrosynth::ModulationConnection* connection) {
+    if (false) {
+        connection->destination_name = "";
+        connection->source_name = "";
+    }
+    else if (mod_connections_.count(connection) == 0) {
+        //change.disconnecting = false;
+        mod_connections_.push_back(connection);
+        //push wrapper to actual processors
+        //modulation_change_queue_.enqueue(change);
+    }
+    //mod_connections_.push_back()
 }

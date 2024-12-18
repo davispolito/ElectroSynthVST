@@ -16,6 +16,7 @@ class AboutSection;
 struct SynthGuiData;
 class HeaderSection;
 class MainSection;
+class ModulationManager;
 namespace electrosynth{
     constexpr int kMinWindowWidth = 350;
     constexpr int kMinWindowHeight = 205;
@@ -89,6 +90,9 @@ public :
     juce::OpenGLContext open_gl_context_;
     juce::CriticalSection open_gl_critical_section_;
     OpenGlWrapper open_gl_;
+    std::map<std::string, SynthSlider*> getAllSliders() override;
+    std::map<std::string, ModulationButton*> getAllModulationButtons() override;
+    void modulationChanged();
 private :
     std::unique_ptr<AboutSection> about_section_;
     std::unique_ptr<MainSection> main_;
@@ -111,6 +115,7 @@ private :
     // std::unique_ptr<melatonin::Inspector> inspector;
     std::unique_ptr<OpenGlToggleButton> inspectButton;
     OpenGlBackground background_;
+    std::unique_ptr<ModulationManager> modulation_manager;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FullInterface)
 };
 

@@ -65,11 +65,11 @@ class ModulationButton : public PlainShapeComponent {
   
     ModulationButton(String name);
     virtual ~ModulationButton();
-
+    void init(OpenGlWrapper& ) override;
     void paintBackground(Graphics& g) override;
     void parentHierarchyChanged() override;
     void resized() override;
-
+    bool isInit() override;
     virtual void render(OpenGlWrapper& open_gl, bool animate) override;
 
     void mouseDown(const MouseEvent& e) override;
@@ -99,7 +99,7 @@ class ModulationButton : public PlainShapeComponent {
 
   private:
     void disconnectModulation(electrosynth::ModulationConnection* connection);
-
+    bool initialized;
     String text_override_;
     SynthGuiInterface* parent_;
     std::vector<Listener*> listeners_;

@@ -90,6 +90,7 @@ juce_add_plugin("${PROJECT_NAME}"
 # Without running into ODR violations
 add_library(SharedCode INTERFACE
         source/common/ModulationConnection.h
+        source/common/templates/ModulationConnection.cpp
 
 )
 

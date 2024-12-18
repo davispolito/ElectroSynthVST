@@ -25,6 +25,10 @@
 #include <set>
 #include <string>
 #include "leaf.h"
+#include "ModulationWrapper.h"
+#include "ModulationConnection.h"
+#include "circular_queue.h"
+class ProcessorBase;
 class ModulatorBase;
 class SynthGuiInterface;
 template<typename T>
@@ -46,25 +50,23 @@ public:
    void pitchWheelGuiChanged(float value);
    void modWheelGuiChanged(float value);
    void presetChangedThroughMidi(juce::File preset) override;
-   //    void valueChangedExternal(const std::string& name, float value);
-   //    void valueChangedInternal(const std::string& name, float value);
+   std::vector<electrosynth::ModulationConnection*> getSourceConnections(const std::string& source);
+   std::vector<electrosynth::ModulationConnection*> getDestinationConnections(const std::string& destination);
 
 
-   bool isModSourceEnabled(const std::string& source);
-   int getNumModulations(const std::string& destination);
-   int getConnectionIndex(const std::string& source, const std::string& destination);
-
-
+   electrosynth::ModulationConnection* getConnection(const std::string& source, const std::string& destination);
    bool loadFromFile(File preset, std::string& error) ;
-
-
-
+    std::unique_ptr<electrosynth::ModulationConnection> createConnection(const std::string& from, const std::string& to);
+   bool connectModulation(const std::string& source, const std::string& destination);
+   void connectModulation(electrosynth::ModulationConnection* connection);
 
    int getSampleRate();
    void initEngine();
 
+   electrosynth::ModulationConnectionBank& getModulationBank();
 
-   void setMpeEnabled(bool enabled);
+   void setPresetName(const juce::String& preset_name);
+   void setMacroName(int index, const juce::String& macro_name);   void setMpeEnabled(bool enabled);
 
    virtual void setValueNotifyHost(const std::string& name, float value) { }
 
@@ -76,8 +78,6 @@ public:
    void setAuthor(const juce::String& author);
    void setComments(const juce::String& comments);
    void setStyle(const juce::String& comments);
-   void setPresetName(const juce::String& preset_name);
-   void setMacroName(int index, const juce::String& macro_name);
    juce::String getAuthor();
    juce::String getComments();
    juce::String getStyle();
@@ -106,7 +106,7 @@ public:
    };
    AudioDeviceManager* manager;
 
-   void addProcessor(std::shared_ptr<juce::AudioProcessor> processor, int voice_index);
+   void addProcessor(std::shared_ptr<ProcessorBase> processor, int voice_index);
     void addModulationSource(std::shared_ptr<ModulatorBase> processor, int voice_index);
 
    juce::ValueTree& getValueTree();
@@ -114,20 +114,25 @@ public:
    static constexpr size_t actionSize = 64; // sizeof ([this, i = index] { callMessageThreadBroadcaster (i); })
    using AudioThreadAction = juce::dsp::FixedSizeFunction<actionSize, void()>;
    moodycamel::ReaderWriterQueue<AudioThreadAction> processorInitQueue { 10 };
+    moodycamel::ReaderWriterQueue<AudioThreadAction> modulationInitQueue { 10 };
    bool saveToFile(File preset);
    bool saveToActiveFile();
    void clearActiveFile() { active_file_ = File(); }
    File getActiveFile() { return active_file_; }
+   electrosynth::CircularQueue<electrosynth::ModulationConnection*> mod_connections_;
+   std::vector<MappingWrapper> mappings;
+   void disconnectModulation(electrosynth::ModulationConnection* connection) ;
+
+   void disconnectModulation(const std::string& source, const std::string& destination) ;
+
+
+   int getNumModulations(const std::string& destination);
 protected:
 
    juce::ValueTree tree;
    juce::UndoManager um;
    virtual SynthGuiInterface* getGuiInterface() = 0;
-   //    OwnedArray<ReferenceCountedArray<BKSamplerSound<juce::AudioFormatReader>>> mainPianoSoundSet;
-   //    OwnedArray<ReferenceCountedArray<BKSamplerSound<juce::AudioFormatReader>>> resonanceReleaseSoundSet;
-   //    OwnedArray<ReferenceCountedArray<BKSamplerSound<juce::AudioFormatReader>>> hammerReleaseSoundSet;
-   //    OwnedArray<ReferenceCountedArray<BKSamplerSound<juce::AudioFormatReader>>> emptySoundSet;
-   //    OwnedArray<ReferenceCountedArray<BKSamplerSound<juce::AudioFormatReader>>> pedalReleaseSoundSet;
+
 
    bool loadFromValueTree(const ValueTree& state);
 

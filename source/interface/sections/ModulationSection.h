@@ -11,6 +11,7 @@
     #include "ParameterView/ParametersView.h"
     #include <juce_gui_basics/juce_gui_basics.h>
 class ModulationButton;
+class ModulationManager;
 class ModulationSection : public SynthSection
 {
 public:
@@ -27,6 +28,7 @@ public:
     //void setAllValues(vital::control_map& controls) override;
     //void setFilterActive(bool active);
     juce::ValueTree state;
+    void addModButtonListener(ModulationManager*);
 private:
 
     std::unique_ptr<electrosynth::ParametersView> _view;

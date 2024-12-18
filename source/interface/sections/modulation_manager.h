@@ -25,14 +25,17 @@
 
 #include "synth_section.h"
 #include "synth_slider.h"
-
+#include <tracktion_engine.h>
 #include <set>
 
 class ExpandModulationButton;
 class ModulationMatrix;
 class ModulationMeter;
 class ModulationDestination;
-
+class SynthBase;
+namespace electrosynth{
+    class ModulationConnectionBank;
+}
 class ModulationAmountKnob : public SynthSlider {
   public:
     enum MenuOptions {
@@ -51,7 +54,7 @@ class ModulationAmountKnob : public SynthSlider {
         virtual void setModulationStereo(ModulationAmountKnob* modulation_knob, bool stereo) = 0;
     };
 
-    ModulationAmountKnob(juce::String name, int index);
+    ModulationAmountKnob(juce::String name, int index, const ValueTree &v);
 
     void mouseDown(const juce::MouseEvent& e) override;
     void mouseUp(const juce::MouseEvent& e) override;
@@ -132,6 +135,7 @@ class ModulationAmountKnob : public SynthSlider {
     bool bipolar_;
     bool draw_background_;
 
+    ValueTree state;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModulationAmountKnob)
 };
 
@@ -165,13 +169,13 @@ class ModulationManager : public SynthSection,
                           public ModulationButton::Listener,
                           public ModulationAmountKnob::Listener,
                           public SynthSlider::SliderListener,
-                          public ModulationExpansionBox::Listener {
+                          public ModulationExpansionBox::Listener,
+                          public ValueTree::Listener/* tracktion::engine::ValueTreeObjectList<ModulationButton> */ {
   public:
     static constexpr int kIndicesPerMeter = 6;
     static constexpr float kDragImageWidthPercent = 0.018f;
 
-    ModulationManager(std::map<std::string, ModulationButton*> modulation_buttons,
-                      std::map<std::string, SynthSlider*> sliders
+    ModulationManager(ValueTree& tree,SynthBase* bank
                       );
     ~ModulationManager();
 
@@ -260,7 +264,15 @@ class ModulationManager : public SynthSection,
     void removeAuxDestinationConnection(int to_index);
     void removeAuxSourceConnection(int from_index);
 
+    void 	valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) {}
+        void 	valueTreeChildAdded (ValueTree &parentTree, ValueTree &childWhichHasBeenAdded);
+        void 	valueTreeChildRemoved (ValueTree &parentTree, ValueTree &childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) {}
+             void 	valueTreeChildOrderChanged (ValueTree &parentTreeWhoseChildrenHaveMoved, int oldIndex, int newIndex) {}
+             void 	valueTreeParentChanged (ValueTree &treeWhoseParentHasChanged) {}
+             void 	valueTreeRedirected (ValueTree &treeWhichHasBeenChanged) {}
+             juce::ValueTree v;
   private:
+      CriticalSection open_gl_critical_section_;
     void setDestinationQuadBounds(ModulationDestination* destination);
     void makeCurrentModulatorAmountsVisible();
     void makeModulationsVisible(SynthSlider* destination, bool visible);
@@ -276,8 +288,10 @@ class ModulationManager : public SynthSection,
     void showModulationAmountOverlay(ModulationAmountKnob* slider);
     void hideModulationAmountOverlay();
 
+//    void addAllSliders
     std::unique_ptr<juce::Component> modulation_destinations_;
-
+      std::map<juce::Viewport*, int> num_rotary_meters;
+      std::map<juce::Viewport*, int> num_linear_meters;
     ModulationButton* current_source_;
     ExpandModulationButton* current_expanded_modulation_;
     ModulationDestination* temporarily_set_destination_;
@@ -289,9 +303,9 @@ class ModulationManager : public SynthSection,
     OpenGlQuad current_modulator_quad_;
     OpenGlQuad editing_rotary_amount_quad_;
     OpenGlQuad editing_linear_amount_quad_;
-    std::map<juce::Viewport*, std::unique_ptr<OpenGlMultiQuad>> rotary_destinations_;
+    std::map<juce::Viewport*, std::shared_ptr<OpenGlMultiQuad>> rotary_destinations_;
     std::map<juce::Viewport*, std::unique_ptr<OpenGlMultiQuad>> linear_destinations_;
-    std::map<juce::Viewport*, std::unique_ptr<OpenGlMultiQuad>> rotary_meters_;
+    std::map<juce::Viewport*, std::shared_ptr<OpenGlMultiQuad>> rotary_meters_;
     std::map<juce::Viewport*, std::unique_ptr<OpenGlMultiQuad>> linear_meters_;
     juce::Point<int> mouse_drag_start_;
     juce::Point<int> mouse_drag_position_;

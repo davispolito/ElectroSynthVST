@@ -1,13 +1,13 @@
-//
 // Created by Davis Polito on 8/8/24.
 //
 
 #ifndef ELECTROSYNTH_FILTERMODULEPROCESSOR_H
 #define ELECTROSYNTH_FILTERMODULEPROCESSOR_H
 #include "FilterModule.h"
-#include "_PluginBase.h"
 #include "PluginStateImpl_.h"
 #include "ParameterView/ParametersView.h"
+#include "Identifiers.h"
+#include "Processors/ProcessorBase.h"
 namespace electrosynth{
     namespace utils
     {
@@ -63,22 +63,20 @@ struct FilterParams : public LEAFParams<_tFiltModule >
 
 
 
-class FilterModuleProcessor : public _PluginBase<PluginStateImpl_<FilterParams, _tFiltModule>, _tFiltModule>
+class FilterModuleProcessor : public ProcessorStateBase<PluginStateImpl_<FilterParams, _tFiltModule>>
 {
 public:
     FilterModuleProcessor(const juce::ValueTree&, LEAF* leaf);
 
 
+    void getNextAudioBlock (const juce::AudioSourceChannelInfo &bufferToFill) override {}
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
-    void prepareToPlay (double sampleRate, int samplesPerBlock) override {};
+    void prepareToPlay (int samplesPerBlock, double sampleRate ) override {};
     void releaseResources() override {}
-    void processAudioBlock (juce::AudioBuffer<float>& buffer) override {};
-    bool acceptsMidi() const override
+    electrosynth::ParametersView* createEditor() override
     {
-       return false;
+        return new electrosynth::ParametersView(state, state.params, vt.getProperty(IDs::type).toString() + vt.getProperty(IDs::uuid).toString());
     }
-    juce::AudioProcessorEditor* createEditor() override {return new electrosynth::ParametersViewEditor{*this};};
-
 };
 
 #endif //ELECTROSYNTH_OSCILLATORMODULEPROCESSOR_H

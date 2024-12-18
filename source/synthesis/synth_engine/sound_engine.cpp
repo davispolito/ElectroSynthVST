@@ -18,11 +18,12 @@
 #include "OscillatorModuleProcessor.h"
 #include "melatonin_audio_sparklines/melatonin_audio_sparklines.h"
 #include "Modulators/ModulatorBase.h"
-
+#include "ModulationWrapper.h"
+#include "Processors/ProcessorBase.h"
 namespace electrosynth {
 
   SoundEngine::SoundEngine() : /*voice_handler_(nullptr),*/
-                                last_oversampling_amount_(-1), last_sample_rate_(-1), bufferDebugger(std::make_unique<BufferDebugger>())
+                                last_oversampling_amount_(-1), last_sample_rate_(-1), bufferDebugger(std::make_unique<BufferDebugger>()), modulation_bank_((leaf))
   {
       LEAF_init(&leaf, 44100.0f, dummy_memory, 32, [](){return (float)rand()/RAND_MAX;});
       //processors.push_back(std::make_shared<OscillatorModuleProcessor> (&leaf));
@@ -229,4 +230,43 @@ namespace electrosynth {
   void SoundEngine::sostenutoOffRange(int sample, int from_channel, int to_channel) {
 //    voice_handler_->sostenutoOffRange(sample, from_channel, to_channel);
   }
+
+  leaf::Processor* SoundEngine::getLEAFProcessor (const std::string& proc_string) {
+
+      // Use find_if to search the outermost vector
+      auto outerIt = std::find_if(processors.begin(), processors.end(), [&](const std::vector<std::shared_ptr<ProcessorBase>>& innerVec) {
+          // Use find_if on the inner vector to look for the processor with the target name
+          auto innerIt = std::find_if(innerVec.begin(), innerVec.end(), [&](const std::shared_ptr<ProcessorBase>& processor) {
+              return processor->name ==  juce::String(proc_string);
+          });
+
+          // Return true if the processor was found in this inner vector
+          return innerIt != innerVec.end();
+      });
+
+      if (outerIt != processors.end()) {
+          auto innerIt = std::find_if(outerIt->begin(), outerIt->end(),
+              [&](const std::shared_ptr<ProcessorBase>& processor) {
+                  return processor->name == juce::String(proc_string);
+              });
+
+          // Here you can cast the processor to leaf::Processor* if needed
+          return &(innerIt->get()->proc);
+      }
+
+  }
+  std::pair<leaf::Processor*, int> SoundEngine::getParameterInfo (const std::string& value) {
+      std::stringstream ss(value);
+      std::string proc_string;
+      std::getline(ss,proc_string,'_');
+
+      auto proc = getLEAFProcessor(proc_string);
+
+      std::string param_string;
+      std::getline(ss,param_string,'_');
+
+
+  }
+
+
 } // namespace vital

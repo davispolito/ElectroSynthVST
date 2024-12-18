@@ -200,6 +200,18 @@ void ModulationButton::render(OpenGlWrapper& open_gl, bool animate) {
   PlainShapeComponent::render(open_gl, animate);
 }
 
+void ModulationButton::init(OpenGlWrapper &open_gl)
+{
+    PlainShapeComponent::init(open_gl);
+    if (image_.shader()->getProgramID() !=  0)
+        initialized = true;
+}
+
+bool ModulationButton::isInit()
+{
+    return initialized;
+}
+
 void ModulationButton::mouseDown(const MouseEvent& e) {
   if (e.mods.isPopupMenu()) {
     if (parent_ == nullptr)

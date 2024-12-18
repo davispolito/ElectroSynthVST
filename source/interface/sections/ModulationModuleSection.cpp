@@ -9,7 +9,7 @@
 #include "synth_gui_interface.h"
 #include "Modulators/ModulatorBase.h"
 
-ModulationModuleSection::ModulationModuleSection(ValueTree &v) : ModulesInterface<ModulationSection>(v)
+ModulationModuleSection::ModulationModuleSection(ValueTree &v, ModulationManager *modulation_manager) : ModulesInterface<ModulationSection>(v), modulation_manager(modulation_manager)
 {
     scroll_bar_ = std::make_unique<OpenGlScrollBar>(false);
 //    scroll_bar_->setShrinkLeft(true);
@@ -136,7 +136,7 @@ ModulationSection* ModulationModuleSection::createNewObject (const juce::ValueTr
     try {
 
         auto proc = factory.create(v.getProperty(IDs::type).toString().toStdString(),std::make_tuple( v,leaf ));
-        auto *module_section = new ModulationSection(v.getProperty(IDs::type).toString(), v, dynamic_cast<electrosynth::ParametersView*>(proc->createEditor()));
+        auto *module_section = new ModulationSection(v.getProperty(IDs::type).toString(), v,(proc->createEditor()));
         container_->addSubSection(module_section);
         parent->tryEnqueueProcessorInitQueue(
             [this, proc] {
@@ -151,6 +151,13 @@ ModulationSection* ModulationModuleSection::createNewObject (const juce::ValueTr
 
     return nullptr;
 }
+
+void ModulationModuleSection::newObjectAdded(ModulationSection* sect)
+{
+    sect->addModButtonListener(modulation_manager);
+    resized();
+}
+
 void ModulationModuleSection::deleteObject (ModulationSection* at)
 {
     auto parent = findParentComponentOfClass<SynthGuiInterface>();
@@ -208,4 +215,9 @@ void ModulationModuleSection::redoBackgroundImage() {
     background_graphics.fillAll(background);
     container_->paintBackground(background_graphics);
     background_.setOwnImage(background_image);
+}
+std::map<std::string, ModulationButton*> ModulationModuleSection::getAllModulationButtons()
+{
+    //test_->getAllSliders();
+    return container_->getAllModulationButtons();
 }

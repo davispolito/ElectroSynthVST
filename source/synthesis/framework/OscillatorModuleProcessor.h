@@ -5,9 +5,10 @@
 #ifndef ELECTROSYNTH_OSCILLATORMODULEPROCESSOR_H
 #define ELECTROSYNTH_OSCILLATORMODULEPROCESSOR_H
 #include "SimpleOscModule.h"
-#include "_PluginBase.h"
 #include "PluginStateImpl_.h"
 #include "ParameterView/ParametersView.h"
+#include "Identifiers.h"
+#include "Processors/ProcessorBase.h"
 namespace electrosynth{
     namespace utils
     {
@@ -46,7 +47,22 @@ namespace electrosynth{
 //    OscType,
 //    OscNumParams
 //} OscParams;
-enum class FlagOscTypes{
+
+constexpr std::array<const char*, 13> OscParamNames = {
+    "",       // OscMidiPitch
+    "harmonic",           // OscHarmonic
+    "pitch",              // OscPitchOffset
+    "pitch_fine",         // OscPitchFine
+    "freq_offset",        // OscFreqOffset
+    "shape",              // OscShapeParam
+    "amp",                // OscAmpParam
+    "glide",              // OscGlide
+    "harmonicStepped",    // OscStepped
+    "",                   // OscSyncMode (undefined in your parameters)
+    "",                   // OscSyncIn (undefined in your parameters)
+    "oscType",            // OscType
+    ""                    // OscNumParams (typically represents the count, no corresponding parameter)
+};enum class FlagOscTypes{
     OscTypeSawSquare =1,
     OscTypeSineTri =2,
     OscTypeSaw =4,
@@ -162,7 +178,7 @@ struct OscillatorParams : public LEAFParams<_tOscModule >
         };
     chowdsp::BoolParameter::Ptr harmonicstepped
     {
-        juce::ParameterID{"harmoniStepped" , 100},
+        juce::ParameterID{"harmonicStepped" , 100},
         "Harmonic stepped",
         0.0,
         &module->params[OscParams::OscSteppedHarmonic],
@@ -185,7 +201,7 @@ struct OscillatorParams : public LEAFParams<_tOscModule >
     };
     chowdsp::BoolParameter::Ptr pitchStepped
 {
-    juce::ParameterID{"harmoniStepped" , 100},
+    juce::ParameterID{"pitchStepped" , 100},
     "Harmonic stepped",
     0.0,
     &module->params[OscParams::OscSteppedPitch],
@@ -200,22 +216,26 @@ struct OscillatorParams : public LEAFParams<_tOscModule >
 
 
 };
-class OscillatorModuleProcessor : public _PluginBase<PluginStateImpl_<OscillatorParams, _tOscModule>, _tOscModule>
+class OscillatorModuleProcessor : public ProcessorStateBase<PluginStateImpl_<OscillatorParams, _tOscModule>>
 {
 public:
     OscillatorModuleProcessor(const juce::ValueTree&, LEAF* leaf);
 
-
+    void getNextAudioBlock (const juce::AudioSourceChannelInfo &bufferToFill) override {}
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
-    void prepareToPlay (double sampleRate, int samplesPerBlock) override {};
+    void prepareToPlay (int samplesPerBlock, double sampleRate ) override {};
     void releaseResources() override {}
-    void processAudioBlock (juce::AudioBuffer<float>& buffer) override {};
-    bool acceptsMidi() const override
+    //void processAudioBlock (juce::AudioBuffer<float>& buffer) override {};
+//    bool acceptsMidi() const override
+//    {
+//       return true;
+ electrosynth::ParametersView* createEditor() override
     {
-       return true;
+        return new electrosynth::ParametersView(state, state.params, vt.getProperty(IDs::type).toString() + vt.getProperty(IDs::uuid).toString());
     }
-    juce::AudioProcessorEditor* createEditor() override {return new electrosynth::ParametersViewEditor{*this};};
+   // juce::AudioProcessorEditor* createEditor() override {return new electrosynth::ParametersViewEditor{*this,vstate.getProperty(IDs::type).toString() + vstate.getProperty(IDs::uuid).toString()};};
     chowdsp::ScopedCallbackList callbacks;
+
 };
 
 #endif //ELECTROSYNTH_OSCILLATORMODULEPROCESSOR_H

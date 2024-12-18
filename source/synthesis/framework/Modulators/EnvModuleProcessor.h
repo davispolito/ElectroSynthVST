@@ -95,7 +95,7 @@ public:
     void releaseResources() override {}
     electrosynth::ParametersView* createEditor() override
     {
-        return new electrosynth::ParametersView(state, state.params);
+        return new electrosynth::ParametersView(state, state.params, "");
     }
 };
 

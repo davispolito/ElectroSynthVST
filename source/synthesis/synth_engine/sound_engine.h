@@ -20,9 +20,12 @@
 #include <leaf.h>
 #include <leaf-config.h>
 #include "buffer_debugger.h"
+#include "processors/processor.h"
+#include "ModulationConnection.h"
+class MappingWrapper;
+class ProcessorBase;
 class ModulatorBase;
 namespace electrosynth {
-
     using AudioGraphIOProcessor = juce::AudioProcessorGraph::AudioGraphIOProcessor;
     using Node = juce::AudioProcessorGraph::Node;
   class SoundEngine : public NoteHandler {
@@ -120,9 +123,16 @@ namespace electrosynth {
       void sostenutoOffRange(int sample, int from_channel, int to_channel);
       force_inline int getOversamplingAmount() const { return last_oversampling_amount_; }
 
+
+      ModulationConnectionBank modulation_bank_;
+      ModulationConnectionBank& getModulationBank() { return modulation_bank_; }
       void checkOversampling();
-      std::vector<std::vector<std::shared_ptr<juce::AudioProcessor>>> processors;
+
+      leaf::Processor* getLEAFProcessor(const std::string&);
+      std::pair<leaf::Processor*, int> getParameterInfo(const std::string&);
+      std::vector<std::vector<std::shared_ptr<ProcessorBase>>> processors;
       std::vector<std::vector<std::shared_ptr<ModulatorBase>>> modSources;
+      std::vector<std::shared_ptr<MappingWrapper>> modulations;
       char dummy_memory[32];
       juce::AudioSampleBuffer bu{2,1};
       LEAF leaf;

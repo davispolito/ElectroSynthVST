@@ -7,10 +7,12 @@
 
 #include "synth_section.h"
 
-//
+
+class TestSection;
 class SoundModuleSection;
 class ModulationModuleSection;
 struct SynthGuiData ;
+class ModulationManager;
 class MainSection : public SynthSection
 {
 public:
@@ -21,14 +23,17 @@ public:
         //virtual void showAboutSection() = 0;
     };
 
-    MainSection(juce::ValueTree v, juce::UndoManager &um, OpenGlWrapper &open_gl, SynthGuiData * data);
+    MainSection(juce::ValueTree v, juce::UndoManager &um, OpenGlWrapper &open_gl, SynthGuiData * data, ModulationManager* );
 
     void paintBackground(Graphics& g) override;
     void resized() override;
 
+    std::map<std::string, SynthSlider*> getAllSliders() override;
+    std::map<std::string, ModulationButton*> getAllModulationButtons() override;
 
     void addListener(Listener* listener) { listeners_.push_back(listener); }
 private:
+    std::unique_ptr<TestSection> test_;
     juce::ValueTree v;
     juce::UndoManager &um;
     std::unique_ptr<SoundModuleSection> sound_interface;

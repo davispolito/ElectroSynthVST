@@ -7,10 +7,11 @@
 #include "sound_generator_section.h"
 class ModulatorBase;
 class ModulationSection;
+class ModulationManager;
 class ModulationModuleSection : public ModulesInterface<ModulationSection>
 {
 public:
-    ModulationModuleSection(juce::ValueTree &);
+    ModulationModuleSection(juce::ValueTree &, ModulationManager* );
     virtual ~ModulationModuleSection();
     ModulationSection* createNewObject(const juce::ValueTree& v) override;
     void deleteObject (ModulationSection* at) override;
@@ -18,6 +19,9 @@ public:
     void scrollBarMoved(ScrollBar* scroll_bar, double range_start) override;
     void setScrollBarRange() override;
     // void reset() override;
+
+    void newObjectAdded (ModulationSection*);
+
     void objectRemoved (ModulationSection*) override     { resized();}//resized(); }
     void objectOrderChanged() override              {resized(); }//resized(); }
     void valueTreeParentChanged (juce::ValueTree&) override{};
@@ -38,7 +42,10 @@ public:
     void resized() override;
      PopupItems createPopupMenu() override;
      void handlePopupResult(int result) override;
+
+     std::map<std::string, ModulationButton*> getAllModulationButtons() override;
      Factory<ModulatorBase> factory;
+     ModulationManager* modulation_manager;
 };
 
 #endif //ELECTROSYNTH_ModulationMODULESECTION_H

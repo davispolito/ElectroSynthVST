@@ -19,7 +19,7 @@
 #include "synth_base.h"
 #include "../synthesis/synth_engine/sound_engine.h"
 #include "Modulators/ModulatorBase.h"
-
+#include "Processors/ProcessorBase.h"
 
 SynthGuiData::SynthGuiData(SynthBase* synth_base) : synth(synth_base),
                                                      tree(synth_base->getValueTree()),
@@ -86,7 +86,7 @@ LEAF* SynthGuiInterface::getLEAF()
 void SynthGuiInterface::tryEnqueueProcessorInitQueue (juce::FixedSizeFunction<64, void()> callback) {
   synth_->processorInitQueue.try_enqueue(std::move(callback));
 }
-void SynthGuiInterface::addProcessor(std::shared_ptr<juce::AudioProcessor> processor, int voice_index)
+void SynthGuiInterface::addProcessor(std::shared_ptr<ProcessorBase> processor, int voice_index)
 {
   synth_->addProcessor (processor, voice_index);
 }
@@ -94,6 +94,27 @@ void SynthGuiInterface::addProcessor(std::shared_ptr<juce::AudioProcessor> proce
 void SynthGuiInterface::addModulationSource (std::shared_ptr<ModulatorBase> modSource, int voice_index)
 {
     synth_->addModulationSource(modSource,voice_index);
+}
+void SynthGuiInterface::connectModulation(std::string source, std::string destination)
+{
+    bool created = synth_->connectModulation(source, destination);
+//    if (created)
+//        return;
+        //initModulationValues(source, destination);
+    notifyModulationsChanged();
+}
+
+void SynthGuiInterface::disconnectModulation(std::string source, std::string destination) {
+    synth_->disconnectModulation(source, destination);
+    notifyModulationsChanged();
+}
+
+void SynthGuiInterface::disconnectModulation(electrosynth::ModulationConnection* connection) {
+    synth_->disconnectModulation(connection);
+    notifyModulationsChanged();
+}
+void SynthGuiInterface::notifyModulationsChanged() {
+    gui_->modulationChanged();
 }
 //float SynthGuiInterface::getControlValue(const std::string& name) {
 //  return synth_->getControls()[name]->value();

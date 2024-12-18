@@ -298,9 +298,11 @@ class SynthSection : public Component, public Slider::Listener,
     virtual void buttonClicked(Button* clicked_button) override;
     virtual void guiChanged(SynthButton* button) override;
 
-    std::map<std::string, SynthSlider*> getAllSliders() { return all_sliders_; }
+    virtual std::map<std::string, SynthSlider*> getAllSliders() { return all_sliders_; }
     std::map<std::string, ToggleButton*> getAllButtons() { return all_buttons_; }
-
+    virtual std::map<std::string, ModulationButton*> getAllModulationButtons() {
+        return all_modulation_buttons_;
+    }
 
     virtual void setActive(bool active);
     bool isActive() const { return active_; }
@@ -337,7 +339,6 @@ class SynthSection : public Component, public Slider::Listener,
     std::vector<juce::Component*> all_sliders_v;
     void addButton(OpenGlToggleButton* button, bool show = true);
     void addOpenGlComponent(std::shared_ptr<OpenGlComponent> open_gl_component, bool to_beginning = false, bool makeVisible = true);
-
   protected:
     void setSliderHasHzAlternateDisplay(SynthSlider* slider);
     void setSidewaysHeading(bool sideways) { sideways_heading_ = sideways; }
@@ -376,10 +377,11 @@ class SynthSection : public Component, public Slider::Listener,
     OpenGlBackground* background_;
     std::map<std::string, SynthSlider*> slider_lookup_;
     std::map<std::string, Button*> button_lookup_;
-
+    std::map<std::string, ModulationButton*> modulation_buttons_;
 
     std::map<std::string, SynthSlider*> all_sliders_;
     std::map<std::string, ToggleButton*> all_buttons_;
+    std::map<std::string, ModulationButton*> all_modulation_buttons_;
     std::map<Skin::ValueId, float> value_lookup_;
 
     const SynthSection* parent_;

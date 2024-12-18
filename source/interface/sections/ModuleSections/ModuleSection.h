@@ -11,7 +11,7 @@
 class ModuleSection : public SynthSection
 {
 public:
-    ModuleSection(juce::String name, const juce::ValueTree &, electrosynth::ParametersViewEditor* editor);
+    ModuleSection(juce::String name, const juce::ValueTree &, electrosynth::ParametersView* editor);
 
     virtual ~ModuleSection();
 
@@ -26,7 +26,7 @@ public:
     juce::ValueTree state;
 private:
 
-    std::unique_ptr<electrosynth::ParametersViewEditor> _view_editor;
+    std::unique_ptr<electrosynth::ParametersView> _view;
 
 
 };

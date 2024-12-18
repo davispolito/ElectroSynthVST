@@ -384,6 +384,7 @@ void SynthSection::renderOpenGlComponents(OpenGlWrapper& open_gl, bool animate) 
       background_->render(open_gl);
 }
 
+
 void SynthSection::destroyOpenGlComponents(OpenGlWrapper& open_gl) {
   for (auto& open_gl_component : open_gl_components_)
     open_gl_component->destroy(open_gl);
@@ -399,7 +400,7 @@ void SynthSection::destroyOpenGlComponent(OpenGlComponent const& open_gl_compone
 {
     //moves the component to the end of the array
     //erases it from the vector
-    const MessageManagerLock mmLock;
+    //const MessageManagerLock mmLock;
     auto new_logical_end = std::remove_if(open_gl_components_.begin(), open_gl_components_.end(), [&](std::shared_ptr<OpenGlComponent> const& p)
     {
         return *p == open_gl_component;
@@ -463,6 +464,7 @@ void SynthSection::addButton(OpenGlShapeButton* button, bool show) {
 
 
 void SynthSection::addSlider(SynthSlider* slider, bool show, bool listen) {
+    slider->setName(this->getName().toStdString() + "_" + slider->getName().toStdString());
   slider_lookup_[slider->getName().toStdString()] = slider;
   all_sliders_[slider->getName().toStdString()] = slider;
   all_sliders_v.push_back(slider);
@@ -491,7 +493,8 @@ void SynthSection::addSubSection(SynthSection* sub_section, bool show) {
   std::map<std::string, ToggleButton*> sub_buttons = sub_section->getAllButtons();
   all_buttons_.insert(sub_buttons.begin(), sub_buttons.end());
 
-
+  std::map<std::string, ModulationButton*> sub_mod_buttons = sub_section->getAllModulationButtons();
+  all_modulation_buttons_.insert(sub_mod_buttons.begin(), sub_mod_buttons.end());
 }
 
 void SynthSection::removeSubSection(SynthSection* section) {
@@ -667,8 +670,8 @@ float SynthSection::getPadding() {
 //}
 
 void SynthSection::addModulationButton(std::shared_ptr<ModulationButton> button, bool show) {
-//    modulation_buttons_[button->getName().toStdString()] = button;
-//    all_modulation_buttons_[button->getName().toStdString()] = button;
+    modulation_buttons_[button->getName().toStdString()] = button.get();
+    all_modulation_buttons_[button->getName().toStdString()] = button.get();
     if (show)
         addOpenGlComponent(std::static_pointer_cast<OpenGlImageComponent>(button));
 }

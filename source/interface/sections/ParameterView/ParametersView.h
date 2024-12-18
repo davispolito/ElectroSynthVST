@@ -8,8 +8,8 @@ namespace electrosynth {
 /** Clone of juce::GenericAudioProcessorEditor, but usable as a generic component */
     class ParametersView : public SynthSection {
     public:
-        ParametersView (chowdsp::PluginState& pluginState, chowdsp::ParamHolder& params);
-        ParametersView (chowdsp::ParameterListeners& paramListeners, chowdsp::ParamHolder& params);
+        ParametersView (chowdsp::PluginState& pluginState, chowdsp::ParamHolder& params,String name);
+        ParametersView (chowdsp::ParameterListeners& paramListeners, chowdsp::ParamHolder& params,String name);
         ~ParametersView() override;
 
         void paint(juce::Graphics &) override;
@@ -43,14 +43,14 @@ namespace electrosynth {
     {
     public:
         template <typename PluginType>
-        explicit ParametersViewEditor (PluginType& plugin)
-            : ParametersViewEditor (plugin, plugin.getState(), plugin.getState().params )
+        explicit ParametersViewEditor (PluginType& plugin, String name)
+            : ParametersViewEditor (plugin, plugin.getState(), plugin.getState().params,name )
         {
         }
 
-        ParametersViewEditor (juce::AudioProcessor& proc, chowdsp::PluginState& pluginState, chowdsp::ParamHolder& params)
+        ParametersViewEditor (juce::AudioProcessor& proc, chowdsp::PluginState& pluginState, chowdsp::ParamHolder& params,String name)
             : juce::AudioProcessorEditor (proc),
-              view (pluginState, params)
+              view (pluginState, params,name)
         {
 //            setResizable (true, false);
 //            setSize (view.getWidth(), view.getHeight());

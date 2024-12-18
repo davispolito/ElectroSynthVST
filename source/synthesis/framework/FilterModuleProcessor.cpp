@@ -3,6 +3,8 @@
 //
 
 #include "FilterModuleProcessor.h"
+#include "Identifiers.h"
+#include "Identifiers.h"
 //float electrosynth::utils::stringToHarmonicVal(const juce::String &s){
 //    if(!s.contains("/"))
 //    {
@@ -23,12 +25,11 @@
 //    else
 //        return juce::String(harmonic);
 //}
-FilterModuleProcessor::FilterModuleProcessor(const juce::ValueTree &v, LEAF *leaf) :_PluginBase<PluginStateImpl_<FilterParams, _tFiltModule>, _tFiltModule>(leaf)
-
-
+FilterModuleProcessor::FilterModuleProcessor(const juce::ValueTree &v, LEAF *leaf) : ProcessorStateBase<PluginStateImpl_<FilterParams, _tFiltModule>>(leaf,v)
 {
    //tOscModule_init(static_cast<void*>(module), {0, 0}, id, leaf)
     //tFiltModule_processorInit(state.params.module, &processor);
+   vt.setProperty(IDs::uuid, state.params.processor.processorUniqueID, nullptr);
 }
 
 void FilterModuleProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)

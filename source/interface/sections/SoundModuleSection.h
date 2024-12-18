@@ -6,6 +6,7 @@
 #define ELECTROSYNTH_SOUNDMODULESECTION_H
 #include "sound_generator_section.h"
 class ModuleSection;
+class ProcessorBase;
 class SoundModuleSection : public ModulesInterface<ModuleSection>
 {
 public:
@@ -29,7 +30,9 @@ public:
 
     PopupItems createPopupMenu() override;
     void handlePopupResult(int result) override;
-    Factory<juce::AudioProcessor> factory;
+    Factory<ProcessorBase> factory;
+    std::map<std::string, SynthSlider*> getAllSliders() override;
+
 };
 
 #endif //ELECTROSYNTH_SOUNDMODULESECTION_H

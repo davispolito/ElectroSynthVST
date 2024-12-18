@@ -26,7 +26,8 @@
 #include "constants.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "ModulationConnection.h"
-
+#include "FullInterface.h"
+#include "synth_base.h"
 namespace {
   constexpr float kDefaultModulationRatio = 0.25f;
   constexpr float kModSourceMeterWidth = 0.0018f;
@@ -188,8 +189,8 @@ class ModulationDestination : public juce::Component {
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModulationDestination)
 };
 
-ModulationAmountKnob::ModulationAmountKnob(juce::String name, int index) : SynthSlider(name),
-                                                                     color_component_(nullptr), index_(index) {
+ModulationAmountKnob::ModulationAmountKnob(juce::String name, int index, const ValueTree &vt) : SynthSlider(name),
+                                                                     color_component_(nullptr), index_(index), state(vt) {
   setModulationKnob();
   bypass_ = false;
   stereo_ = false;
@@ -357,16 +358,14 @@ void ModulationAmountKnob::setSource(const std::string& name) {
   repaint();
 }
 
-ModulationManager::ModulationManager(
-    std::map<std::string, ModulationButton*> modulation_buttons,
-    std::map<std::string, SynthSlider*> sliders
+ModulationManager::ModulationManager(ValueTree &tree, SynthBase* base
     ) : SynthSection("modulation_manager"),
                                           drag_quad_(Shaders::kRingFragment),
                                           current_modulator_quad_(Shaders::kRoundedRectangleBorderFragment),
                                           editing_rotary_amount_quad_(Shaders::kRotaryModulationFragment),
                                           editing_linear_amount_quad_(Shaders::kLinearModulationFragment),
                                           modifying_(false), dragging_(false), changing_hover_modulation_(false),
-                                          current_modulator_(nullptr), modulation_expansion_box_(std::make_shared<ModulationExpansionBox>()){
+                                          current_modulator_(nullptr), modulation_expansion_box_(std::make_shared<ModulationExpansionBox>()), v(tree){
   current_modulator_quad_.setQuad(0, -1.0f, -1.0f, 2.0f, 2.0f);
   drag_quad_.setTargetComponent(this);
   editing_rotary_amount_quad_.setTargetComponent(this);
@@ -392,64 +391,27 @@ ModulationManager::ModulationManager(
   temporarily_set_bipolar_ = false;
 //  num_voices_readout_ = nullptr;
 
-  modulation_buttons_ = modulation_buttons;
-  for (auto& modulation_button : modulation_buttons_) {
-    modulation_button.second->addListener(this);
-
-    modulation_callout_buttons_[modulation_button.first] = std::make_unique<ExpandModulationButton>();
-    addChildComponent(modulation_callout_buttons_[modulation_button.first].get());
-    addOpenGlComponent(modulation_callout_buttons_[modulation_button.first]->getGlComponent());
-    modulation_callout_buttons_[modulation_button.first]->addListener(this);
-  }
-
-  modulation_source_meters_ = std::make_unique<BarRenderer>(modulation_buttons.size());
-  modulation_source_meters_->setBarWidth(0.0f);
-  addAndMakeVisible(modulation_source_meters_.get());
-  modulation_source_meters_->setInterceptsMouseClicks(false, false);
-
+//  modulation_buttons_ = modulation_buttons;
+//  for (auto& modulation_button : modulation_buttons_) {
+//    modulation_button.second->addListener(this);
+//
+//    modulation_callout_buttons_[modulation_button.first] = std::make_unique<ExpandModulationButton>();
+//    addChildComponent(modulation_callout_buttons_[modulation_button.first].get());
+//    addOpenGlComponent(modulation_callout_buttons_[modulation_button.first]->getGlComponent());
+//    modulation_callout_buttons_[modulation_button.first]->addListener(this);
+//  }
+//
+//  modulation_source_meters_ = std::make_unique<BarRenderer>(modulation_buttons.size());
+//  modulation_source_meters_->setBarWidth(0.0f);
+//  addAndMakeVisible(modulation_source_meters_.get());
+//  modulation_source_meters_->setInterceptsMouseClicks(false, false);
+//
   setInterceptsMouseClicks(false, true);
 
   modulation_destinations_ = std::make_unique<juce::Component>();
   modulation_destinations_->setInterceptsMouseClicks(false, true);
 
-  slider_model_lookup_ = sliders;
-  std::map<juce::Viewport*, int> num_rotary_meters;
-  std::map<juce::Viewport*, int> num_linear_meters;
-//  for (auto& slider : slider_model_lookup_) {
-//    if (mono_modulations[slider.first]) {
-//      bool rotary = slider.second->isRotary() && !slider.second->isTextOrCurve();
-//      juce::Viewport* viewport = slider.second->findParentComponentOfClass<juce::Viewport>();
-//      if (rotary)
-//        num_rotary_meters[viewport] = num_rotary_meters[viewport] + 1;
-//      else
-//        num_linear_meters[viewport] = num_linear_meters[viewport] + 1;
-//    }
-//  }
 
-  for (auto& rotary_meters : num_rotary_meters) {
-    rotary_destinations_[rotary_meters.first] = std::make_unique<OpenGlMultiQuad>(rotary_meters.second,
-                                                                                  Shaders::kCircleFragment);
-    rotary_destinations_[rotary_meters.first]->setTargetComponent(this);
-    rotary_destinations_[rotary_meters.first]->setScissorComponent(rotary_meters.first);
-    rotary_destinations_[rotary_meters.first]->setAlpha(0.0f, true);
-
-    rotary_meters_[rotary_meters.first] = std::make_unique<OpenGlMultiQuad>(rotary_meters.second,
-                                                                            Shaders::kRotaryModulationFragment);
-    rotary_meters_[rotary_meters.first]->setTargetComponent(this);
-    rotary_meters_[rotary_meters.first]->setScissorComponent(rotary_meters.first);
-  }
-  for (auto& linear_meters : num_linear_meters) {
-    linear_destinations_[linear_meters.first] = std::make_unique<OpenGlMultiQuad>(linear_meters.second,
-                                                                                  Shaders::kRoundedRectangleFragment);
-    linear_destinations_[linear_meters.first]->setTargetComponent(this);
-    linear_destinations_[linear_meters.first]->setScissorComponent(linear_meters.first);
-    linear_destinations_[linear_meters.first]->setAlpha(0.0f, true);
-
-    linear_meters_[linear_meters.first] = std::make_unique<OpenGlMultiQuad>(linear_meters.second,
-                                                                            Shaders::kLinearModulationFragment);
-    linear_meters_[linear_meters.first]->setTargetComponent(this);
-    linear_meters_[linear_meters.first]->setScissorComponent(linear_meters.first);
-  }
 
   for (auto& slider : slider_model_lookup_) {
     std::string name = slider.first;
@@ -479,16 +441,17 @@ ModulationManager::ModulationManager(
 
   addChildComponent(modulation_destinations_.get());
 
+  electrosynth::ModulationConnectionBank & bank = base->getModulationBank();
   for (int i = 0; i < electrosynth::kMaxModulationConnections; ++i) {
-    std::string name = "modulation_" + std::to_string(i + 1) + "_amount"; 
-    modulation_amount_sliders_[i] = std::make_unique<ModulationAmountKnob>(name, i);
+    std::string name = "modulation_" + std::to_string(i + 1) + "_amount";
+    modulation_amount_sliders_[i] = std::make_unique<ModulationAmountKnob>(name, i, bank.atIndex(i)->state);
     modulation_amount_sliders_[i]->setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     addSlider(modulation_amount_sliders_[i].get());
     modulation_amount_sliders_[i]->addSliderListener(this);
     modulation_amount_sliders_[i]->addModulationAmountListener(this);
     modulation_amount_lookup_[name] = modulation_amount_sliders_[i].get();
 
-    modulation_hover_sliders_[i] = std::make_unique<ModulationAmountKnob>(name, i);
+    modulation_hover_sliders_[i] = std::make_unique<ModulationAmountKnob>(name, i, bank.atIndex(i)->state);
     modulation_hover_sliders_[i]->setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     addSlider(modulation_hover_sliders_[i].get());
     modulation_hover_sliders_[i]->setAlpha(0.0f, true);
@@ -496,7 +459,7 @@ ModulationManager::ModulationManager(
     modulation_hover_sliders_[i]->addModulationAmountListener(this);
     modulation_hover_sliders_[i]->setDrawWhenNotVisible(true);
 
-    selected_modulation_sliders_[i] = std::make_unique<ModulationAmountKnob>(name, i);
+    selected_modulation_sliders_[i] = std::make_unique<ModulationAmountKnob>(name, i, bank.atIndex(i)->state);
     selected_modulation_sliders_[i]->setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     addSlider(selected_modulation_sliders_[i].get());
     selected_modulation_sliders_[i]->setAlpha(0.0f, true);
@@ -504,11 +467,14 @@ ModulationManager::ModulationManager(
     selected_modulation_sliders_[i]->addModulationAmountListener(this);
     selected_modulation_sliders_[i]->setDrawWhenNotVisible(true);
   }
+
+  v.addListener(this);
 }
 
 void ModulationManager::createModulationMeter(
                                               SynthSlider* slider, OpenGlMultiQuad* quads, int index) {
   std::string name = slider->getName().toStdString();
+
   std::unique_ptr<ModulationMeter> meter = std::make_unique<ModulationMeter>(
                                                                              slider, quads, index);
   addChildComponent(meter.get());
@@ -557,7 +523,7 @@ void ModulationManager::resized() {
   }
 
   modulation_destinations_->setBounds(getLocalBounds());
-  modulation_source_meters_->setBounds(getLocalBounds());
+ // modulation_source_meters_->setBounds(getLocalBounds());
 
   updateModulationMeterLocations();
 
@@ -610,11 +576,11 @@ void ModulationManager::updateModulationMeterLocations() {
     if (model)
       meter.second->setBounds(getLocalArea(model, model->getModulationMeterBounds()));
 
-//    if (parent) {
-//      int num_modulations = parent->getSynth()->getNumModulations(meter.first);
-//      meter.second->setModulated(num_modulations);
-//      meter.second->setVisible(num_modulations);
-//    }
+    if (parent) {
+      int num_modulations = parent->getSynth()->getNumModulations(meter.first);
+      meter.second->setModulated(num_modulations);
+      meter.second->setVisible(num_modulations);
+    }
   }
 }
 
@@ -639,10 +605,10 @@ void ModulationManager::modulationDisconnected(electrosynth::ModulationConnectio
   if (current_modulator_ == nullptr)
     return;
   
-//  if (meter_lookup_.count(connection->destination_name)) {
-//    meter_lookup_[connection->destination_name]->setModulated(!last);
-//    meter_lookup_[connection->destination_name]->setVisible(!last);
-//  }
+  if (meter_lookup_.count(connection->destination_name)) {
+    meter_lookup_[connection->destination_name]->setModulated(!last);
+    meter_lookup_[connection->destination_name]->setVisible(!last);
+  }
 }
 
 void ModulationManager::modulationSelected(ModulationButton* source) {
@@ -667,20 +633,217 @@ void ModulationManager::modulationCleared() {
 }
 
 bool ModulationManager::hasFreeConnection() {
-//  SynthGuiInterface* parent = findParentComponentOfClass<SynthGuiInterface>();
-//  electrosynth::ModulationConnectionBank& bank = parent->getSynth()->getModulationBank();
-//  for (int i = 0; i < electrosynth::kMaxModulationConnections; ++i) {
-//    electrosynth::ModulationConnection* connection = bank.atIndex(i);
-//    if (connection->source_name.empty() && connection->destination_name.empty())
-//      return true;
-//  }
-//  return false;
+  SynthGuiInterface* parent = findParentComponentOfClass<SynthGuiInterface>();
+  electrosynth::ModulationConnectionBank& bank = parent->getSynth()->getModulationBank();
+  for (int i = 0; i < electrosynth::kMaxModulationConnections; ++i) {
+    electrosynth::ModulationConnection* connection = bank.atIndex(i);
+    if (connection->source_name.empty() && connection->destination_name.empty())
+      return true;
+  }
+
+  return false;
+}
+
+void 	ModulationManager::valueTreeChildAdded (ValueTree &parentTree, ValueTree &childWhichHasBeenAdded)
+{
+    FullInterface* full = findParentComponentOfClass<FullInterface>();
+    auto sliders = full->getAllSliders();
+    auto mod_buttons = full->getAllModulationButtons();
+    for (auto s : sliders)
+    {
+        DBG (s.first);
+    }
+
+    full->open_gl_.context.executeOnGLThread ([this, &full] (juce::OpenGLContext& openGLContext) {
+        for (auto& multiquad : rotary_destinations_)
+        {
+            multiquad.second->destroy (full->open_gl_);
+        }
+        for (auto& multiquad : rotary_meters_)
+        {
+            multiquad.second->destroy (full->open_gl_);
+        }
+        for (auto& multiquad : linear_meters_)
+        {
+            multiquad.second->destroy (full->open_gl_);
+        }
+        for (auto& multiquad : linear_destinations_)
+        {
+            multiquad.second->destroy (full->open_gl_);
+        }
+    },
+        true);
+    {
+        ScopedLock lock (open_gl_critical_section_);
+        rotary_destinations_.clear();
+        rotary_meters_.clear();
+        linear_destinations_.clear();
+        linear_meters_.clear();
+        modulation_buttons_.clear();
+
+
+        modulation_buttons_ = mod_buttons;
+        for (auto& modulation_button : modulation_buttons_) {
+            modulation_button.second->addListener(this);
+
+            modulation_callout_buttons_[modulation_button.first] = std::make_unique<ExpandModulationButton>();
+            addChildComponent(modulation_callout_buttons_[modulation_button.first].get());
+            addOpenGlComponent(modulation_callout_buttons_[modulation_button.first]->getGlComponent());
+            modulation_callout_buttons_[modulation_button.first]->addListener(this);
+        }
+
+        slider_model_lookup_ = sliders;
+        for (auto& slider : slider_model_lookup_)
+        {
+            //        if (mono_modulations[slider.first]) {
+            std::string name = slider.first;
+            bool rotary = slider.second->isRotary() && !slider.second->isTextOrCurve();
+            juce::Viewport* viewport = slider.second->findParentComponentOfClass<juce::Viewport>();
+            if (rotary)
+                num_rotary_meters[viewport] = num_rotary_meters[viewport] + 1;
+            else
+                num_linear_meters[viewport] = num_linear_meters[viewport] + 1;
+        }
+
+
+        for (auto& rotary_meters : num_rotary_meters)
+        {
+            DBG ("num rotary" + String (rotary_meters.second));
+            rotary_destinations_[rotary_meters.first] = std::make_unique<OpenGlMultiQuad> (rotary_meters.second,
+                Shaders::kCircleFragment);
+            rotary_destinations_[rotary_meters.first]->setTargetComponent (this);
+            rotary_destinations_[rotary_meters.first]->setScissorComponent (rotary_meters.first);
+            rotary_destinations_[rotary_meters.first]->setAlpha (0.0f, true); //DEBUG FIX
+
+            rotary_meters_[rotary_meters.first] = std::make_unique<OpenGlMultiQuad> (rotary_meters.second,
+                Shaders::kRotaryModulationFragment);
+            rotary_meters_[rotary_meters.first]->setTargetComponent (this);
+            rotary_meters_[rotary_meters.first]->setScissorComponent (rotary_meters.first);
+        }
+        for (auto& linear_meters : num_linear_meters)
+        {
+            linear_destinations_[linear_meters.first] = std::make_unique<OpenGlMultiQuad> (linear_meters.second,
+                Shaders::kRoundedRectangleFragment);
+            linear_destinations_[linear_meters.first]->setTargetComponent (this);
+            linear_destinations_[linear_meters.first]->setScissorComponent (linear_meters.first);
+            linear_destinations_[linear_meters.first]->setAlpha (0.0f, true);
+
+            linear_meters_[linear_meters.first] = std::make_unique<OpenGlMultiQuad> (linear_meters.second,
+                Shaders::kLinearModulationFragment);
+            linear_meters_[linear_meters.first]->setTargetComponent (this);
+            linear_meters_[linear_meters.first]->setScissorComponent (linear_meters.first);
+        }
+        for (auto& slider : slider_model_lookup_)
+        {
+            std::string name = slider.first;
+
+            bool rotary = slider.second->isRotary() && !slider.second->isTextOrCurve();
+            Viewport* viewport = slider.second->findParentComponentOfClass<Viewport>(); //        }
+            if (rotary)
+            {
+                int index = num_rotary_meters[viewport] - 1;
+                num_rotary_meters[viewport] = index;
+                createModulationMeter (slider.second, rotary_meters_[viewport].get(), index);
+            }
+            else
+            {
+                int index = num_linear_meters[viewport] - 1;
+                num_linear_meters[viewport] = index;
+                createModulationMeter (slider.second, linear_meters_[viewport].get(), index);
+            }
+
+            slider.second->addSliderListener (this);
+            createModulationSlider (name, slider.second, false);
+        }
+    }
+    full->open_gl_.context.executeOnGLThread ([this, &full] (juce::OpenGLContext& openGLContext) {
+        for (auto& multiquad : rotary_destinations_)
+        {
+            multiquad.second->init (full->open_gl_);
+        }
+        for (auto& multiquad : rotary_meters_)
+        {
+            multiquad.second->init (full->open_gl_);
+        }
+        for (auto& multiquad : linear_meters_)
+        {
+            multiquad.second->init (full->open_gl_);
+        }
+        for (auto& multiquad : linear_destinations_)
+        {
+            multiquad.second->init (full->open_gl_);
+        }
+    },
+        true);
+//
+//    std::map<juce::Viewport*, int> rotary_indices;
+//    std::map<juce::Viewport*, int> linear_indices;
+//    for (auto& rotary_destination_group : rotary_destinations_)
+//        rotary_indices[rotary_destination_group.first] = 0;
+//
+//    for (auto& linear_destination_group : linear_destinations_)
+//        linear_indices[linear_destination_group.first] = 0;
+//
+//    SynthGuiInterface* parent = findParentComponentOfClass<SynthGuiInterface>();
+//    //std::string source_name = source->getName().toStdString();
+//    std::set<std::string> active_destinations;
+//    //  std::vector<electrosynth::ModulationConnection*> connections = parent->getSynth()->getSourceConnections(source_name);
+//    //  for (electrosynth::ModulationConnection* connection : connections)
+//    //    active_destinations.insert(connection->destination_name);
+//
+//    for (auto& destination : destination_lookup_)
+//    {
+//        SynthSlider* model = slider_model_lookup_[destination.first];
+//        //bool should_show = model->isShowing() && model->getSectionParent()->isActive() && current_source_->getName() != juce::String (destination.first);
+//        juce::Viewport* viewport = model->findParentComponentOfClass<juce::Viewport>();
+//        destination.second->setVisible (1 /*should_show*/);
+//        destination.second->setActive (1 /*active_destinations.count(destination.first)*/);
+//        destination.second->setMargin (0);
+//
+//        juce::Point<int> position = getLocalPoint (model, juce::Point<int> (0, 0));
+//        juce::Rectangle<int> slider_bounds = model->getLocalBounds() + position;
+//        destination.second->setBounds (slider_bounds);
+//
+//        juce::Component* extra_target = model->getExtraModulationTarget();
+//        if (extra_target)
+//        {
+//            juce::Rectangle<int> bounds = destination.second->getFillBounds().toNearestInt() + position;
+//
+//            juce::Point<int> top_left = getLocalPoint (extra_target, juce::Point<int> (0, 0));
+//            juce::Rectangle<int> extra_bounds (top_left.x, top_left.y, extra_target->getWidth(), extra_target->getHeight());
+//            bounds = bounds.getUnion (extra_bounds);
+//            destination.second->setBounds (bounds);
+//        }
+//
+//        if (1)
+//        {
+//            if (destination.second->isRotary())
+//            {
+//                destination.second->setIndex (rotary_indices[viewport]);
+//                rotary_indices[viewport] = rotary_indices[viewport] + 1;
+//            }
+//            else
+//            {
+//                destination.second->setIndex (linear_indices[viewport]);
+//                linear_indices[viewport] = linear_indices[viewport] + 1;
+//            }
+//            setDestinationQuadBounds (destination.second);
+//        }
+//    }
+//    //DEBUG FIX
+//    for (auto& index_count : rotary_indices)
+//    {
+//        rotary_destinations_[index_count.first]->setNumQuads (index_count.second);
+//        //rotary_destinations_[index_count.first]->setAlpha(index_count.second > 0 ? 1.0f : 0.0f);
+//    }
+    resized();
 }
 
 void ModulationManager::startModulationMap(ModulationButton* source, const juce::MouseEvent& e) {
   if (!hasFreeConnection())
     return;
-  
+
+
   mouse_drag_position_ = getLocalPoint(source, e.getPosition());
   current_source_ = source;
   dragging_ = true;
@@ -701,9 +864,9 @@ void ModulationManager::startModulationMap(ModulationButton* source, const juce:
   SynthGuiInterface* parent = findParentComponentOfClass<SynthGuiInterface>();
   std::string source_name = source->getName().toStdString();
   std::set<std::string> active_destinations;
-//  std::vector<electrosynth::ModulationConnection*> connections = parent->getSynth()->getSourceConnections(source_name);
-//  for (electrosynth::ModulationConnection* connection : connections)
-//    active_destinations.insert(connection->destination_name);
+  std::vector<electrosynth::ModulationConnection*> connections = parent->getSynth()->getSourceConnections(source_name);
+  for (electrosynth::ModulationConnection* connection : connections)
+    active_destinations.insert(connection->destination_name);
 
   for (auto& destination : destination_lookup_) {
     SynthSlider* model = slider_model_lookup_[destination.first];
@@ -740,7 +903,7 @@ void ModulationManager::startModulationMap(ModulationButton* source, const juce:
       setDestinationQuadBounds(destination.second);
     }
   }
-
+ //DEBUG FIX
   for (auto& index_count : rotary_indices) {
     rotary_destinations_[index_count.first]->setNumQuads(index_count.second);
     rotary_destinations_[index_count.first]->setAlpha(index_count.second > 0 ? 1.0f : 0.0f);
@@ -789,13 +952,15 @@ void ModulationManager::modulationDraggedToHoverSlider(ModulationAmountKnob* hov
     setModulationValues(source_name, name, value, false, false, false);
     connection = getConnection(source_name, name);
 
-//    int new_index = connection->modulation_processor->index();
-//    addAuxConnection(new_index, hover_slider->index());
-//    setModulationSliderValues(new_index, value);
+    int new_index = connection->index_in_all_mods;
+    addAuxConnection(new_index, hover_slider->index());
+    setModulationSliderValues(new_index, value);
   }
 }
 
 void ModulationManager::modulationDraggedToComponent(juce::Component* component, bool bipolar) {
+    if(component != nullptr)
+        DBG(component->getName() + component->getParentComponent()->getName());
   if (component && current_modulator_ && destination_lookup_.count(component->getName().toStdString())) {
     std::string name = component->getName().toStdString();
 
@@ -818,18 +983,19 @@ void ModulationManager::modulationDraggedToComponent(juce::Component* component,
       destination->setActive(true);
       setDestinationQuadBounds(destination);
 
-//      SynthGuiInterface* parent = findParentComponentOfClass<SynthGuiInterface>();
-//      std::vector<electrosynth::ModulationConnection*> connections = parent->getSynth()->getDestinationConnections(name);
-//
-//      for (electrosynth::ModulationConnection* connection : connections) {
-//        if (connection->source_name == source_name && connection->destination_name == name) {
-//          int index = connection->modulation_processor->index();
-//          showModulationAmountOverlay(selected_modulation_sliders_[index].get());
-//        }
-//      }
+      SynthGuiInterface* parent = findParentComponentOfClass<SynthGuiInterface>();
+      std::vector<electrosynth::ModulationConnection*> connections = parent->getSynth()->getDestinationConnections(name);
+
+      for (electrosynth::ModulationConnection* connection : connections) {
+        if (connection->source_name == source_name && connection->destination_name == name) {
+          int index = connection->index_in_all_mods;
+          showModulationAmountOverlay(selected_modulation_sliders_[index].get());
+        }
+      }
 
       setVisibleMeterBounds();
       makeModulationsVisible(slider, true);
+      DBG("modconnecte4d");
     }
     else
       modulationsChanged(name);
@@ -1008,7 +1174,7 @@ void ModulationManager::setModulationStereo(ModulationAmountKnob* modulation_kno
 void ModulationManager::initOpenGlComponents(OpenGlWrapper& open_gl) {
   drag_quad_.init(open_gl);
   modulation_expansion_box_->init(open_gl);
-  modulation_source_meters_->init(open_gl);
+ // modulation_source_meters_->init(open_gl);
   for (auto& rotary_destination_group : rotary_destinations_)
     rotary_destination_group.second->init(open_gl);
 
@@ -1051,7 +1217,7 @@ void ModulationManager::drawDraggingModulation(OpenGlWrapper& open_gl) {
   if (current_source_ == nullptr || temporarily_set_destination_ || temporarily_set_hover_slider_)
     return;
 
-  float mod_percent = 10.f; //modulation_source_readouts_[current_source_->getName().toStdString()]->value();
+  float mod_percent = 100.f; //modulation_source_readouts_[current_source_->getName().toStdString()]->value();
   float draw_radius = kRadiusWidthRatio * getWidth();
   float radius_x = draw_radius / getWidth();
   float radius_y = draw_radius / getHeight();
@@ -1069,7 +1235,7 @@ void ModulationManager::drawDraggingModulation(OpenGlWrapper& open_gl) {
 void ModulationManager::renderOpenGlComponents(OpenGlWrapper& open_gl, bool animate) {
   if (!animate)
     return;
-
+  ScopedLock lock(open_gl_critical_section_);
   drawCurrentModulator(open_gl);
   for (auto& callout_button : modulation_callout_buttons_) {
     if (callout_button.second->isVisible())
@@ -1078,18 +1244,18 @@ void ModulationManager::renderOpenGlComponents(OpenGlWrapper& open_gl, bool anim
 
   OpenGlComponent::setViewPort(this, open_gl);
   drawModulationDestinations(open_gl);
-
-  juce::Colour first_color = findColour(Skin::kWidgetPrimary1, true);
-  juce::Colour second_color = findColour(Skin::kWidgetPrimary2, true);
-
-  modulation_source_meters_->setAdditiveBlending(second_color.getBrightness() > 0.5f);
-  modulation_source_meters_->setColor(second_color);
-  renderSourceMeters(open_gl, 1);
-  modulation_source_meters_->setAdditiveBlending(first_color.getBrightness() > 0.5f);
-  modulation_source_meters_->setColor(first_color);
-  renderSourceMeters(open_gl, 0);
-  updateSmoothModValues();
-
+//
+//  juce::Colour first_color = findColour(Skin::kWidgetPrimary1, true);
+//  juce::Colour second_color = findColour(Skin::kWidgetPrimary2, true);
+//
+////  modulation_source_meters_->setAdditiveBlending(second_color.getBrightness() > 0.5f);
+////  modulation_source_meters_->setColor(second_color);
+////  renderSourceMeters(open_gl, 1);
+////  modulation_source_meters_->setAdditiveBlending(first_color.getBrightness() > 0.5f);
+////  modulation_source_meters_->setColor(first_color);
+////  renderSourceMeters(open_gl, 0);
+//  updateSmoothModValues();
+//
   editing_rotary_amount_quad_.render(open_gl, animate);
   editing_linear_amount_quad_.render(open_gl, animate);
 
@@ -1101,7 +1267,7 @@ void ModulationManager::renderOpenGlComponents(OpenGlWrapper& open_gl, bool anim
 void ModulationManager::renderMeters(OpenGlWrapper& open_gl, bool animate) {
   if (!animate)
     return;
-
+  ScopedLock lock (open_gl_critical_section_);
   int num_voices = 1;
 //  if (num_voices_readout_)
 //    num_voices = std::max<float>(0.0f, num_voices_readout_->value()[0]);
@@ -1185,7 +1351,7 @@ void ModulationManager::destroyOpenGlComponents(OpenGlWrapper& open_gl) {
 
   drag_quad_.destroy(open_gl);
   modulation_expansion_box_->destroy(open_gl);
-  modulation_source_meters_->destroy(open_gl);
+//  modulation_source_meters_->destroy(open_gl);
   for (auto& rotary_destination_group : rotary_destinations_)
     rotary_destination_group.second->destroy(open_gl);
 
@@ -1201,32 +1367,32 @@ void ModulationManager::destroyOpenGlComponents(OpenGlWrapper& open_gl) {
 
 void ModulationManager::showModulationAmountOverlay(ModulationAmountKnob* slider) {
   electrosynth::ModulationConnection* connection = getConnection(slider->index());
-//  if (connection == nullptr || meter_lookup_.count(connection->destination_name) == 0)
-//    return;
-//
-//  ModulationMeter* meter = meter_lookup_[connection->destination_name].get();
-//  if (!meter->destination()->isShowing())
-//    return;
-//
-//  if (meter->isRotary()) {
-//    editing_rotary_amount_quad_.setTargetComponent(meter);
-//    editing_rotary_amount_quad_.setAdditive(false);
-//    meter->setAmountQuadVertices(editing_rotary_amount_quad_);
-//    meter->setModulationAmountQuad(editing_rotary_amount_quad_, slider->getValue(), slider->isBipolar());
-//
-//    editing_rotary_amount_quad_.setThickness(2.0f);
-//    editing_rotary_amount_quad_.setAlpha(1.0f);
-//    editing_rotary_amount_quad_.setActive(true);
-//  }
-//  else {
-//    editing_linear_amount_quad_.setTargetComponent(meter);
-//    editing_linear_amount_quad_.setAdditive(false);
-//    meter->setAmountQuadVertices(editing_linear_amount_quad_);
-//    meter->setModulationAmountQuad(editing_linear_amount_quad_, slider->getValue(), slider->isBipolar());
-//
-//    editing_linear_amount_quad_.setAlpha(1.0f);
-//    editing_linear_amount_quad_.setActive(true);
-//  }
+  if (connection == nullptr || meter_lookup_.count(connection->destination_name) == 0)
+    return;
+
+  ModulationMeter* meter = meter_lookup_[connection->destination_name].get();
+  if (!meter->destination()->isShowing())
+    return;
+
+  if (meter->isRotary()) {
+    editing_rotary_amount_quad_.setTargetComponent(meter);
+    editing_rotary_amount_quad_.setAdditive(false);
+    meter->setAmountQuadVertices(editing_rotary_amount_quad_);
+    meter->setModulationAmountQuad(editing_rotary_amount_quad_, slider->getValue(), slider->isBipolar());
+
+    editing_rotary_amount_quad_.setThickness(2.0f);
+    editing_rotary_amount_quad_.setAlpha(1.0f);
+    editing_rotary_amount_quad_.setActive(true);
+  }
+  else {
+    editing_linear_amount_quad_.setTargetComponent(meter);
+    editing_linear_amount_quad_.setAdditive(false);
+    meter->setAmountQuadVertices(editing_linear_amount_quad_);
+    meter->setModulationAmountQuad(editing_linear_amount_quad_, slider->getValue(), slider->isBipolar());
+
+    editing_linear_amount_quad_.setAlpha(1.0f);
+    editing_linear_amount_quad_.setActive(true);
+  }
 }
 
 void ModulationManager::hideModulationAmountOverlay() {
@@ -1262,6 +1428,7 @@ void ModulationManager::menuFinished(SynthSlider* slider) {
 
 void ModulationManager::modulationsChanged(const std::string& destination) {
   SynthGuiInterface* parent = findParentComponentOfClass<SynthGuiInterface>();
+
   hideUnusedHoverModulations();
   SynthSlider* slider = slider_model_lookup_[destination];
   if (current_modulator_)
@@ -1275,19 +1442,19 @@ void ModulationManager::modulationsChanged(const std::string& destination) {
   if (meter_lookup_.count(destination) == 0)
     return;
   
-//  int num_modulations = parent->getSynth()->getNumModulations(destination);
-//  meter_lookup_[destination]->setModulated(num_modulations);
-//  meter_lookup_[destination]->setVisible(num_modulations);
+  int num_modulations = parent->getSynth()->getNumModulations(destination);
+  meter_lookup_[destination]->setModulated(num_modulations);
+  meter_lookup_[destination]->setVisible(num_modulations);
 }
 
 int ModulationManager::getModulationIndex(std::string source, std::string destination) {
   SynthGuiInterface* parent = findParentComponentOfClass<SynthGuiInterface>();
-//  std::vector<electrosynth::ModulationConnection*> connections = parent->getSynth()->getDestinationConnections(destination);
-//
-//  for (electrosynth::ModulationConnection* connection : connections) {
-//    if (connection->source_name == source)
-//      return connection->modulation_processor->index();
-//  }
+  std::vector<electrosynth::ModulationConnection*> connections = parent->getSynth()->getDestinationConnections(destination);
+
+  for (electrosynth::ModulationConnection* connection : connections) {
+    if (connection->source_name == source)
+      return connection->index_in_all_mods;
+  }
 
   return -1;
 }
@@ -1315,7 +1482,7 @@ electrosynth::ModulationConnection* ModulationManager::getConnection(int index) 
   if (parent == nullptr)
     return nullptr;
 
-  return {}; //parent->getSynth()->getModulationBank().atIndex(index);
+  return parent->getSynth()->getModulationBank().atIndex(index);
 }
 
 electrosynth::ModulationConnection* ModulationManager::getConnection(const std::string& source, const std::string& dest) {
@@ -1323,11 +1490,11 @@ electrosynth::ModulationConnection* ModulationManager::getConnection(const std::
   if (parent == nullptr)
     return nullptr;
 
-//  std::vector<electrosynth::ModulationConnection*> connections = parent->getSynth()->getSourceConnections(source);
-//  for (electrosynth::ModulationConnection* connection : connections) {
-//    if (connection->destination_name == dest)
-//      return connection;
-//  }
+  std::vector<electrosynth::ModulationConnection*> connections = parent->getSynth()->getSourceConnections(source);
+  for (electrosynth::ModulationConnection* connection : connections) {
+    if (connection->destination_name == dest)
+      return connection;
+  }
 
   return nullptr;
 }
@@ -1338,9 +1505,9 @@ void ModulationManager::mouseDown(SynthSlider* slider) {
       return;
   }
 //
-//  if (modulation_expansion_box_->isVisible())
-//    return;
-//
+  if (modulation_expansion_box_->isVisible())
+    return;
+
 //  electrosynth::ModulationConnection* connection = getConnectionForModulationSlider(slider);
 //  if (connection && !connection->source_name.empty() && !connection->destination_name.empty())
 //    modulationSelected(modulation_buttons_[connection->source_name]);
@@ -1416,10 +1583,10 @@ void ModulationManager::connectModulation(std::string source, std::string destin
   SynthGuiInterface* parent = findParentComponentOfClass<SynthGuiInterface>();
   if (parent == nullptr || source.empty() || destination.empty())
     return;
-//
-//  modifying_ = true;
-//  parent->connectModulation(source, destination);
-//  modifying_ = false;
+
+  modifying_ = true;
+  parent->connectModulation(source, destination);
+  modifying_ = false;
 }
 
 void ModulationManager::removeModulation(std::string source, std::string destination) {
@@ -1433,24 +1600,24 @@ void ModulationManager::removeModulation(std::string source, std::string destina
     return;
   }
   
-//  int index = connection->modulation_processor->index();
-//  if (aux_connections_from_to_.count(index)) {
-//    float current_value = connection->modulation_processor->currentBaseValue();
-//    int dest_index = aux_connections_from_to_[index];
-//    ModulationAmountKnob* modulation_amount = modulation_amount_sliders_[dest_index].get();
-//    removeAuxSourceConnection(index);
-//    float reset_value = current_value == 0.0f ? 1.0f : -current_value;
-//    modulation_amount->setValue(reset_value, dontSendNotification);
-//    modulation_amount->setValue(current_value * 2.0f, sendNotificationSync);
-//  }
-//  else
-//    removeAuxSourceConnection(index);
-//
-//  modifying_ = true;
-//  parent->disconnectModulation(source, destination);
-//  modulationsChanged(destination);
-//  modifying_ = false;
-//  positionModulationAmountSliders();
+  int index = connection->index_in_all_mods;
+  if (aux_connections_from_to_.count(index)) {
+    float current_value = 0.5; //connection->modulation_processor->currentBaseValue();
+    int dest_index = aux_connections_from_to_[index];
+    ModulationAmountKnob* modulation_amount = modulation_amount_sliders_[dest_index].get();
+    removeAuxSourceConnection(index);
+    float reset_value = current_value == 0.0f ? 1.0f : -current_value;
+    modulation_amount->setValue(reset_value, dontSendNotification);
+    modulation_amount->setValue(current_value * 2.0f, sendNotificationSync);
+  }
+  else
+    removeAuxSourceConnection(index);
+
+  modifying_ = true;
+  parent->disconnectModulation(source, destination);
+  modulationsChanged(destination);
+  modifying_ = false;
+  positionModulationAmountSliders();
 }
 
 void ModulationManager::setModulationSliderValue(int index, float value) {
@@ -1548,16 +1715,16 @@ void ModulationManager::initAuxConnections() {
   aux_connections_from_to_.clear();
   aux_connections_to_from_.clear();
 //
-//  electrosynth::ModulationConnectionBank& bank = parent->getSynth()->getModulationBank();
-//  for (int i = 0; i < electrosynth::kMaxModulationConnections; ++i) {
-//    electrosynth::ModulationConnection* connection = bank.atIndex(i);
-//    int index = connection->modulation_processor->index();
-//
-//    if (modulation_amount_lookup_.count(connection->destination_name)) {
-//      int modulation_index = modulation_amount_lookup_[connection->destination_name]->index();
-//      addAuxConnection(index, modulation_index);
-//    }
-//  }
+  electrosynth::ModulationConnectionBank& bank = parent->getSynth()->getModulationBank();
+  for (int i = 0; i < electrosynth::kMaxModulationConnections; ++i) {
+    electrosynth::ModulationConnection* connection = bank.atIndex(i);
+    int index = connection->index_in_all_mods;
+
+    if (modulation_amount_lookup_.count(connection->destination_name)) {
+      int modulation_index = modulation_amount_lookup_[connection->destination_name]->index();
+      addAuxConnection(index, modulation_index);
+    }
+  }
 }
 
 void ModulationManager::reset() {
@@ -1565,11 +1732,11 @@ void ModulationManager::reset() {
   if (parent == nullptr || modifying_)
     return;
 
-//  for (auto& meter : meter_lookup_) {
-//    int num_modulations = parent->getSynth()->getNumModulations(meter.first);
-//    meter.second->setModulated(num_modulations);
-//    meter.second->setVisible(num_modulations);
-//  }
+  for (auto& meter : meter_lookup_) {
+    int num_modulations = parent->getSynth()->getNumModulations(meter.first);
+    meter.second->setModulated(num_modulations);
+    meter.second->setVisible(num_modulations);
+  }
 
   for (auto& button : modulation_buttons_)
     button.second->setActiveModulation(button.second->isActiveModulation());
@@ -1585,18 +1752,18 @@ void ModulationManager::hideUnusedHoverModulations() {
   if (parent == nullptr || changing_hover_modulation_)
     return;
 
-//  electrosynth::ModulationConnectionBank& bank = parent->getSynth()->getModulationBank();
-//  for (int i = 0; i < electrosynth::kMaxModulationConnections; ++i) {
-//    electrosynth::ModulationConnection* connection = bank.atIndex(i);
-//    int index = connection->modulation_processor->index();
-//    if (connection->source_name.empty() || connection->destination_name.empty())
-//      modulation_hover_sliders_[index]->hideImmediately();
-//    else {
-//      SynthSlider* slider = slider_model_lookup_[connection->destination_name];
-//      if (slider == nullptr || !slider->isShowing())
-//        modulation_hover_sliders_[index]->hideImmediately();
-//    }
-//  }
+  electrosynth::ModulationConnectionBank& bank = parent->getSynth()->getModulationBank();
+  for (int i = 0; i < electrosynth::kMaxModulationConnections; ++i) {
+    electrosynth::ModulationConnection* connection = bank.atIndex(i);
+    int index = connection->index_in_all_mods;
+    if (connection->source_name.empty() || connection->destination_name.empty())
+      modulation_hover_sliders_[index]->hideImmediately();
+    else {
+      SynthSlider* slider = slider_model_lookup_[connection->destination_name];
+      if (slider == nullptr || !slider->isShowing())
+        modulation_hover_sliders_[index]->hideImmediately();
+    }
+  }
 }
 
 float ModulationManager::getAuxMultiplier(int index) {
@@ -1647,59 +1814,62 @@ void ModulationManager::makeCurrentModulatorAmountsVisible() {
     return;
 
   std::string source_name = current_modulator_->getName().toStdString();
-//  std::vector<electrosynth::ModulationConnection*> connections = parent->getSynth()->getSourceConnections(source_name);
-//  std::set<ModulationAmountKnob*> selected_modulation_sliders;
+  std::vector<electrosynth::ModulationConnection*> connections = parent->getSynth()->getSourceConnections(source_name);
+  std::set<ModulationAmountKnob*> selected_modulation_sliders;
 
-//  int width = size_ratio_ * 24.0f;
-//  for (electrosynth::ModulationConnection* connection : connections) {
-//    int index = connection->modulation_processor->index();
-//    ModulationAmountKnob* selected_slider = selected_modulation_sliders_[index].get();
-//    selected_slider->setCurrentModulator(true);
-//    selected_modulation_sliders.insert(selected_slider);
-//    if (!selected_slider->hasAux()) {
-//      selected_slider->setValue(connection->modulation_processor->currentBaseValue(), dontSendNotification);
-//      selected_slider->redoImage();
-//    }
-//    selected_slider->setSource(connection->source_name);
-//    selected_slider->setCurrentModulator(connection->source_name == source_name);
+  int width = size_ratio_ * 24.0f;
+  for (electrosynth::ModulationConnection* connection : connections) {
+    int index = connection->index_in_all_mods;
+    ModulationAmountKnob* selected_slider = selected_modulation_sliders_[index].get();
+    selected_slider->setCurrentModulator(true);
+    selected_modulation_sliders.insert(selected_slider);
+    if (!selected_slider->hasAux()) {
+      selected_slider->setValue(0.5,/*connection->modulation_processor->currentBaseValue()*/ dontSendNotification);
+      selected_slider->redoImage();
+    }
+    selected_slider->setSource(connection->source_name);
+    selected_slider->setCurrentModulator(connection->source_name == source_name);
 //    selected_slider->setBipolar(connection->modulation_processor->isBipolar());
 //    selected_slider->setStereo(connection->modulation_processor->isStereo());
 //    selected_slider->setBypass(connection->modulation_processor->isBypassed());
-//
-//    if (slider_model_lookup_.count(connection->destination_name) == 0)
-//      continue;
-//
-//    SynthSlider* destination_slider = slider_model_lookup_[connection->destination_name];
-//    if (slider_model_lookup_[connection->destination_name] == nullptr)
-//      return;
-//    juce::Rectangle<int> destination_bounds = getLocalArea(destination_slider, destination_slider->getLocalBounds());
-//
-//    int center_x = destination_bounds.getCentreX();
-//    int left = destination_bounds.getX();
-//    int right = destination_bounds.getRight();
-//
-//    int bottom = destination_bounds.getBottom();
-//    int top = destination_bounds.getY();
-//    int center_y = destination_bounds.getCentreY();
-//
-//    juce::BubbleComponent::BubblePlacement placement = destination_slider->getModulationPlacement();
-//    selected_slider->setPopupPlacement(placement);
-//    if (placement == juce::BubbleComponent::below)
-//      selected_slider->setBounds(center_x - width / 2, bottom, width, width);
-//    else if (placement == juce::BubbleComponent::above)
-//      selected_slider->setBounds(center_x - width / 2, top - width, width, width);
-//    else if (placement == juce::BubbleComponent::left)
-//      selected_slider->setBounds(left - width, center_y - width / 2, width, width);
-//    else
-//      selected_slider->setBounds(right, center_y - width / 2, width, width);
-//
-//    selected_slider->makeVisible(destination_slider->isShowing());
-//  }
-//
-//  for (auto& selected_slider : selected_modulation_sliders_) {
-//    if (selected_modulation_sliders.count(selected_slider.get()) == 0)
-//      selected_slider->makeVisible(false);
-//  }
+        selected_slider->setBipolar(false);
+        selected_slider->setStereo(false);
+        selected_slider->setBypass(false);
+
+    if (slider_model_lookup_.count(connection->destination_name) == 0)
+      continue;
+
+    SynthSlider* destination_slider = slider_model_lookup_[connection->destination_name];
+    if (slider_model_lookup_[connection->destination_name] == nullptr)
+      return;
+    juce::Rectangle<int> destination_bounds = getLocalArea(destination_slider, destination_slider->getLocalBounds());
+
+    int center_x = destination_bounds.getCentreX();
+    int left = destination_bounds.getX();
+    int right = destination_bounds.getRight();
+
+    int bottom = destination_bounds.getBottom();
+    int top = destination_bounds.getY();
+    int center_y = destination_bounds.getCentreY();
+
+    juce::BubbleComponent::BubblePlacement placement = destination_slider->getModulationPlacement();
+    selected_slider->setPopupPlacement(placement);
+    if (placement == juce::BubbleComponent::below)
+      selected_slider->setBounds(center_x - width / 2, bottom, width, width);
+    else if (placement == juce::BubbleComponent::above)
+      selected_slider->setBounds(center_x - width / 2, top - width, width, width);
+    else if (placement == juce::BubbleComponent::left)
+      selected_slider->setBounds(left - width, center_y - width / 2, width, width);
+    else
+      selected_slider->setBounds(right, center_y - width / 2, width, width);
+
+    selected_slider->makeVisible(destination_slider->isShowing());
+  }
+
+  for (auto& selected_slider : selected_modulation_sliders_) {
+    if (selected_modulation_sliders.count(selected_slider.get()) == 0)
+      selected_slider->makeVisible(false);
+  }
 }
 
 void ModulationManager::makeModulationsVisible(SynthSlider* destination, bool visible) {
@@ -1711,79 +1881,82 @@ void ModulationManager::makeModulationsVisible(SynthSlider* destination, bool vi
   if (slider_model_lookup_[name] != destination)
     return;
 
-//  std::vector<electrosynth::ModulationConnection*> connections = parent->getSynth()->getDestinationConnections(name);
-//  std::vector<ModulationAmountKnob*> modulation_hover_sliders;
-//
-//  bool current_modulation_showing = false;
-//  for (electrosynth::ModulationConnection* connection : connections) {
-//    int index = connection->modulation_processor->index();
-//    ModulationAmountKnob* hover_slider = modulation_hover_sliders_[index].get();
-//    if (current_modulator_ && current_modulator_->getName() == juce::String(connection->source_name))
-//      current_modulation_showing = true;
-//    else
-//      modulation_hover_sliders.push_back(hover_slider);
-//    if (!hover_slider->hasAux()) {
-//      hover_slider->setValue(connection->modulation_processor->currentBaseValue(), dontSendNotification);
-//      hover_slider->redoImage();
-//    }
-//    hover_slider->setSource(connection->source_name);
+  std::vector<electrosynth::ModulationConnection*> connections = parent->getSynth()->getDestinationConnections(name);
+  std::vector<ModulationAmountKnob*> modulation_hover_sliders;
+
+  bool current_modulation_showing = false;
+  for (electrosynth::ModulationConnection* connection : connections) {
+    int index = connection->index_in_all_mods;
+    ModulationAmountKnob* hover_slider = modulation_hover_sliders_[index].get();
+    if (current_modulator_ && current_modulator_->getName() == juce::String(connection->source_name))
+      current_modulation_showing = true;
+    else
+      modulation_hover_sliders.push_back(hover_slider);
+    if (!hover_slider->hasAux()) {
+      hover_slider->setValue(0.5, dontSendNotification); //sould be an actualy value
+      hover_slider->redoImage();
+    }
+    hover_slider->setSource(connection->source_name);
+    hover_slider->setBipolar(false);
+    hover_slider->setStereo(false);
+    hover_slider->setBypass(false);
 //    hover_slider->setBipolar(connection->modulation_processor->isBipolar());
 //    hover_slider->setStereo(connection->modulation_processor->isStereo());
 //    hover_slider->setBypass(connection->modulation_processor->isBypassed());
-//  }
-//
-//  int hover_slider_width = size_ratio_ * 24.0f;
-//  if (current_modulation_showing) {
-//    auto position = modulation_hover_sliders.begin() + (modulation_hover_sliders.size() + 1) / 2;
-//    modulation_hover_sliders.insert(position, nullptr);
-//    if (modulation_hover_sliders.size() % 2 == 0)
-//      modulation_hover_sliders.insert(modulation_hover_sliders.end(), nullptr);
-//  }
-//  int num_sliders = (int)modulation_hover_sliders.size();
-//
-//  juce::Rectangle<int> destination_bounds = getLocalArea(destination, destination->getLocalBounds());
-//  int x = destination_bounds.getRight();
-//  int y = destination_bounds.getBottom();
-//  int beginning_offset = hover_slider_width * num_sliders / 2;
-//  int delta_x = 0;
-//  int delta_y = 0;
-//
-//  juce::BubbleComponent::BubblePlacement placement = destination->getModulationPlacement();
-//  if (placement == juce::BubbleComponent::below) {
-//    x = destination_bounds.getCentreX() - beginning_offset;
-//    delta_x = hover_slider_width;
-//  }
-//  else if (placement == juce::BubbleComponent::above) {
-//    x = destination_bounds.getCentreX() - beginning_offset;
-//    y = destination_bounds.getY() - hover_slider_width;
-//    delta_x = hover_slider_width;
-//  }
-//  else if (placement == juce::BubbleComponent::left) {
-//    x = destination_bounds.getX() - hover_slider_width;
-//    y = destination_bounds.getCentreY() - beginning_offset;
-//    delta_y = hover_slider_width;
-//  }
-//  else {
-//    y = destination_bounds.getCentreY() - beginning_offset;
-//    delta_y = hover_slider_width;
-//  }
-//
-//  std::unordered_set<ModulationAmountKnob*> lookup(modulation_hover_sliders.begin(), modulation_hover_sliders.end());
-//  for (auto& hover_slider : modulation_hover_sliders_) {
-//    if (lookup.count(hover_slider.get()) == 0)
-//      hover_slider->makeVisible(false);
-//  }
-//
-//  for (ModulationAmountKnob* hover_slider : modulation_hover_sliders) {
-//    if (hover_slider) {
-//      hover_slider->setPopupPlacement(placement);
-//      hover_slider->setBounds(x, y, hover_slider_width, hover_slider_width);
-//      hover_slider->makeVisible(visible);
-//      hover_slider->redoImage();
-//    }
-//    x += delta_x;
-//    y += delta_y;
-//  }
+  }
+
+  int hover_slider_width = size_ratio_ * 24.0f;
+  if (current_modulation_showing) {
+    auto position = modulation_hover_sliders.begin() + (modulation_hover_sliders.size()+1 ) / 2;
+    modulation_hover_sliders.insert(position, nullptr);
+    if (modulation_hover_sliders.size() % 2 == 0)
+      modulation_hover_sliders.insert(modulation_hover_sliders.end(), nullptr);
+  }
+  int num_sliders = (int)modulation_hover_sliders.size();
+
+  juce::Rectangle<int> destination_bounds = getLocalArea(destination, destination->getLocalBounds());
+  int x = destination_bounds.getRight();
+  int y = destination_bounds.getBottom();
+  int beginning_offset = hover_slider_width * num_sliders / 2;
+  int delta_x = 0;
+  int delta_y = 0;
+
+  juce::BubbleComponent::BubblePlacement placement = destination->getModulationPlacement();
+  if (placement == juce::BubbleComponent::below) {
+    x = destination_bounds.getCentreX() - beginning_offset;
+    delta_x = hover_slider_width;
+  }
+  else if (placement == juce::BubbleComponent::above) {
+    x = destination_bounds.getCentreX() - beginning_offset;
+    y = destination_bounds.getY() - hover_slider_width;
+    delta_x = hover_slider_width;
+  }
+  else if (placement == juce::BubbleComponent::left) {
+    x = destination_bounds.getX() - hover_slider_width;
+    y = destination_bounds.getCentreY() - beginning_offset;
+    delta_y = hover_slider_width;
+  }
+  else {
+    y = destination_bounds.getCentreY() - beginning_offset;
+    delta_y = hover_slider_width;
+  }
+
+  std::unordered_set<ModulationAmountKnob*> lookup(modulation_hover_sliders.begin(), modulation_hover_sliders.end());
+  for (auto& hover_slider : modulation_hover_sliders_) {
+    if (lookup.count(hover_slider.get()) == 0)
+      hover_slider->makeVisible(false);
+  }
+
+  for (ModulationAmountKnob* hover_slider : modulation_hover_sliders) {
+    if (hover_slider) {
+      hover_slider->setPopupPlacement(placement);
+      hover_slider->setBounds(x, y, hover_slider_width, hover_slider_width);
+      hover_slider->makeVisible(visible);
+      hover_slider->redoImage();
+    }
+    x += delta_x;
+    y += delta_y;
+  }
 }
 
 void ModulationManager::positionModulationAmountSlidersInside(const std::string& source,
@@ -1797,30 +1970,30 @@ void ModulationManager::positionModulationAmountSlidersInside(const std::string&
   if (expand_button == current_expanded_modulation_)
     hideModulationAmountCallout();
 
-//  for (int i = 0; i < total_connections; ++i) {
-//    electrosynth::ModulationConnection* connection = connections[i];
-//    int index = connection->modulation_processor->index();
-//    ModulationAmountKnob* slider = modulation_amount_sliders_[index].get();
-//    slider->setVisible(showingInParents(modulation_button));
-//    juce::Point<int> point = getLocalPoint(modulation_button, juce::Point<int>(0, 0));
-//    slider->setBounds(modulation_button->getModulationAmountBounds(i, total_connections) + point);
-//
-//    juce::BubbleComponent::BubblePlacement popup_position = juce::BubbleComponent::below;
-//    if (slider->getX() < kRightPopupPositionX)
-//      popup_position = juce::BubbleComponent::right;
-//    if (getWidth() - slider->getRight() < kRightPopupPositionX)
-//      popup_position = juce::BubbleComponent::left;
-//    slider->setPopupPlacement(popup_position);
-//
-//    std::string name = connection->destination_name;
-//    if (slider_model_lookup_.count(name))
-//      slider->setDestinationComponent(slider_model_lookup_[name], name);
-//    else
-//      slider->setDestinationComponent(nullptr, name);
-//
-//    slider->setMouseClickGrabsKeyboardFocus(true);
-//    slider->redoImage();
-//  }
+  for (int i = 0; i < total_connections; ++i) {
+    electrosynth::ModulationConnection* connection = connections[i];
+    int index = connection->index_in_all_mods;
+    ModulationAmountKnob* slider = modulation_amount_sliders_[index].get();
+    slider->setVisible(showingInParents(modulation_button));
+    juce::Point<int> point = getLocalPoint(modulation_button, juce::Point<int>(0, 0));
+    slider->setBounds(modulation_button->getModulationAmountBounds(i, total_connections) + point);
+
+    juce::BubbleComponent::BubblePlacement popup_position = juce::BubbleComponent::below;
+    if (slider->getX() < kRightPopupPositionX)
+      popup_position = juce::BubbleComponent::right;
+    if (getWidth() - slider->getRight() < kRightPopupPositionX)
+      popup_position = juce::BubbleComponent::left;
+    slider->setPopupPlacement(popup_position);
+
+    std::string name = connection->destination_name;
+    if (slider_model_lookup_.count(name))
+      slider->setDestinationComponent(slider_model_lookup_[name], name);
+    else
+      slider->setDestinationComponent(nullptr, name);
+
+    slider->setMouseClickGrabsKeyboardFocus(true);
+    slider->redoImage();
+  }
 }
 
 void ModulationManager::positionModulationAmountSlidersCallout(const std::string& source,
@@ -1830,24 +2003,24 @@ void ModulationManager::positionModulationAmountSlidersCallout(const std::string
   expand_button->setBounds(getLocalArea(modulation_button, modulation_button->getModulationAreaBounds()));
   expand_button->setVisible(showingInParents(modulation_button));
 
-//  std::vector<ModulationAmountKnob*> amount_controls;
-//  for (electrosynth::ModulationConnection* connection : connections) {
-//    int index = connection->modulation_processor->index();
-//    amount_controls.push_back(modulation_amount_sliders_[index].get());
-//    ModulationAmountKnob* slider = modulation_amount_sliders_[index].get();
-//
-//    std::string name = connection->destination_name;
-//    if (slider_model_lookup_.count(name))
-//      slider->setDestinationComponent(slider_model_lookup_[name], name);
-//    else
-//      slider->setDestinationComponent(nullptr, name);
-//
-//    slider->setVisible(false);
-//  }
-//
-//  expand_button->setSliders(amount_controls);
-//  if (expand_button == current_expanded_modulation_)
-//    showModulationAmountCallout(source);
+  std::vector<ModulationAmountKnob*> amount_controls;
+  for (electrosynth::ModulationConnection* connection : connections) {
+    int index = connection->index_in_all_mods;
+    amount_controls.push_back(modulation_amount_sliders_[index].get());
+    ModulationAmountKnob* slider = modulation_amount_sliders_[index].get();
+
+    std::string name = connection->destination_name;
+    if (slider_model_lookup_.count(name))
+      slider->setDestinationComponent(slider_model_lookup_[name], name);
+    else
+      slider->setDestinationComponent(nullptr, name);
+
+    slider->setVisible(false);
+  }
+
+  expand_button->setSliders(amount_controls);
+  if (expand_button == current_expanded_modulation_)
+    showModulationAmountCallout(source);
 }
 
 void ModulationManager::showModulationAmountCallout(const std::string& source) {
@@ -1920,16 +2093,16 @@ void ModulationManager::positionModulationAmountSliders(const std::string& sourc
   int max_modulation_height = (kMaxModulationsAcross * modulation_area.getHeight()) / area_width;
   int max_modulations_inside = kMaxModulationsAcross * max_modulation_height;
 
-//  std::vector<electrosynth::ModulationConnection*> connections = parent->getSynth()->getSourceConnections(source);
-//  int total_connections = static_cast<int>(connections.size());
-//  if (total_connections) {
-//    if (total_connections && total_connections > max_modulations_inside)
-//      positionModulationAmountSlidersCallout(source, connections);
-//    else
-//      positionModulationAmountSlidersInside(source, connections);
-//  }
-//  else
-//    modulation_callout_buttons_[source]->setVisible(false);
+  std::vector<electrosynth::ModulationConnection*> connections = parent->getSynth()->getSourceConnections(source);
+  int total_connections = static_cast<int>(connections.size());
+  if (total_connections) {
+    if (total_connections && total_connections > max_modulations_inside)
+      positionModulationAmountSlidersCallout(source, connections);
+    else
+      positionModulationAmountSlidersInside(source, connections);
+  }
+  else
+    modulation_callout_buttons_[source]->setVisible(false);
 }
 
 void ModulationManager::positionModulationAmountSliders() {

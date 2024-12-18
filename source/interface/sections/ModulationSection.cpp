@@ -5,6 +5,7 @@
 
 #include "ModulationSection.h"
 #include "modulation_button.h"
+#include "modulation_manager.h"
 ModulationSection::ModulationSection(juce::String name, const juce::ValueTree &v, electrosynth::ParametersView* editor) : SynthSection(name), state(v), _view(editor),
 mod_button(new ModulationButton(name + "mod_button"))
 {
@@ -35,6 +36,12 @@ void ModulationSection::resized()
     mod_button->setBounds(0,0,40,40);
     int knob_y2 =0;
     SynthSection::resized();
+}
+
+
+void ModulationSection::addModButtonListener(ModulationManager* manager)
+{
+    mod_button->addListener(manager);
 }
 
 //void ModulationSection::setParametersViewEditor (electrosynth::ParametersViewEditor&& editor)

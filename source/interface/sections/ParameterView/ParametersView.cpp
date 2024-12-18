@@ -176,13 +176,13 @@ namespace electrosynth {
 //    };
 
 //==============================================================================
-    ParametersView::ParametersView(chowdsp::PluginState &pluginState, chowdsp::ParamHolder &params)
-            : ParametersView (pluginState.getParameterListeners(), params) {
+    ParametersView::ParametersView(chowdsp::PluginState &pluginState, chowdsp::ParamHolder &params, String name)
+            : ParametersView (pluginState.getParameterListeners(), params, name) {
 
     }
 
-    ParametersView::ParametersView(chowdsp::ParameterListeners& paramListeners, chowdsp::ParamHolder& params)
-            :  SynthSection(params.getName())
+    ParametersView::ParametersView(chowdsp::ParameterListeners& paramListeners, chowdsp::ParamHolder& params, String name)
+            :  SynthSection(name)
     {
               //pimpl(std::make_unique<Pimpl>(params, paramListeners, *this)){
 //        auto *viewport = pimpl->view.getViewport();

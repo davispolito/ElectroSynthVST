@@ -362,10 +362,10 @@ void SynthSlider::mouseEnter(const juce::MouseEvent &e) {
   for (SliderListener* listener : slider_listeners_)
     listener->hoverStarted(this);
 
-//  if (show_popup_on_hover_)
-//    showPopup(true);
-//
-//  hovering_ = true;
+  if (show_popup_on_hover_)
+    showPopup(true);
+
+  hovering_ = true;
   redoImage();
 }
 
@@ -374,7 +374,7 @@ void SynthSlider::mouseExit(const juce::MouseEvent &e) {
   for (SynthSlider::SliderListener* listener : slider_listeners_)
     listener->hoverEnded(this);
 
-  //hidePopup(true);
+  hidePopup(true);
   hovering_ = false;
   redoImage();
 }
@@ -605,11 +605,11 @@ void SynthSlider::drawShadow(juce::Graphics &g) {
 
 void SynthSlider::drawRotaryShadow(juce::Graphics &g) {
     juce::Colour shadow_color = findColour(Skin::kShadow, true);
-    DBG("drawshadow ----" + getName() + "-----");
-
-
-    DBG("component x" + juce::String(getX()));
-    DBG("componoent y" + juce::String(getY()));
+//    DBG("drawshadow ----" + getName() + "-----");
+//
+//
+//    DBG("component x" + juce::String(getX()));
+//    DBG("componoent y" + juce::String(getY()));
    // DBG("scale" + juce::String(parent_->getDisplayScale()));
     int width = getWidth(); //*parent_->getDisplayScale();
     int height = getHeight();// *parent_->getDisplayScale();

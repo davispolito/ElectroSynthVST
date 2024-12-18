@@ -7,6 +7,7 @@
 #include "FilterModuleProcessor.h"
 #include  "ModuleSections/ModuleSection.h"
 #include "synth_gui_interface.h"
+#include "Processors/ProcessorBase.h"
 SoundModuleSection::SoundModuleSection(ValueTree &v) : ModulesInterface<ModuleSection>(v)
 {
     scroll_bar_ = std::make_unique<OpenGlScrollBar>();
@@ -111,7 +112,7 @@ ModuleSection* SoundModuleSection::createNewObject (const juce::ValueTree& v)
     try {
 
         auto proc = factory.create(v.getProperty(IDs::type).toString().toStdString(),std::make_tuple( v,leaf ));
-        auto *module_section = new ModuleSection(v.getProperty(IDs::type).toString(), v, dynamic_cast<electrosynth::ParametersViewEditor*>(proc->createEditor()));
+        auto *module_section = new ModuleSection(v.getProperty(IDs::type).toString() + v.getProperty(IDs::uuid).toString() , v, (proc->createEditor()));
         container_->addSubSection(module_section);
         parent->tryEnqueueProcessorInitQueue(
             [this, proc] {
@@ -132,4 +133,8 @@ void SoundModuleSection::deleteObject (ModuleSection* at)
     auto parent = findParentComponentOfClass<SynthGuiInterface>();
     at->destroyOpenGlComponents(*parent->getOpenGlWrapper());
     delete at;
+}
+std::map<std::string, SynthSlider*> SoundModuleSection::getAllSliders()
+{
+    return container_->getAllSliders();
 }
