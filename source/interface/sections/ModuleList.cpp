@@ -7,6 +7,7 @@
 #include "FilterModuleProcessor.h"
 #include "Modulators/EnvModuleProcessor.h"
 #include "Modulators/SimpleEnvModuleProcessor.h"
+#include "Modulators/ADEnvModuleProcessor.h"
 #include "Modulators/LFOModuleProcessor.h"
 #include "Modulators/PerlinNoiseModuleProcessor.h"
 #include "Modulators/SimpleNoiseModuleProcessor.h"
@@ -41,6 +42,7 @@ ModuleList<T>::ModuleList(SynthBase *synth,const ValueTree& v) : tracktion::engi
 
         factory.template registerType<EnvModuleProcessor, electrosynth::SoundEngine*,juce::ValueTree, LEAF*,juce::UndoManager*>("env");
         factory.template registerType<SimpleEnvModuleProcessor, electrosynth::SoundEngine*,juce::ValueTree, LEAF*,juce::UndoManager*>("simpleEnv");
+        factory.template registerType<ADEnvModuleProcessor, electrosynth::SoundEngine*,juce::ValueTree, LEAF*,juce::UndoManager*>("ADEnv");
         factory.template registerType<LFOModuleProcessor, electrosynth::SoundEngine*,juce::ValueTree, LEAF*, juce::UndoManager*>("lfo");
         factory.template registerType<SimpNoiseModuleProcessor, electrosynth::SoundEngine*,juce::ValueTree, LEAF*, juce::UndoManager*>("simpNos");
         factory.template registerType<PerlNoiseModuleProcessor, electrosynth::SoundEngine*,juce::ValueTree, LEAF*, juce::UndoManager*>("perlNos");

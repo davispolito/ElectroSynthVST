@@ -6,6 +6,8 @@
 #include "ModulationSection.h"
 #include "Modulators/EnvModuleProcessor.h"
 #include "Modulators/LFOModuleProcessor.h"
+#include "Modulators/SimpleEnvModuleProcessor.h"
+#include "Modulators/ADEnvModuleProcessor.h"
 #include "mapping_manager.h"
 #include "synth_base.h"
 #include "synth_gui_interface.h"
@@ -18,7 +20,9 @@ namespace electrosynth {
         if (source_name.startsWithIgnoreCase("env"))
             prefix = "Env ";
         else if (source_name.startsWithIgnoreCase("simpleEnv"))
-            prefix = "Simple Env";
+            prefix = "Simple Env ";
+        else if (source_name.startsWithIgnoreCase("ADEnv"))
+            prefix = "AD Env ";
         else if (source_name.startsWithIgnoreCase("lfo"))
             prefix = "LFO ";
         else if (source_name.startsWithIgnoreCase("vca") || source_name.containsIgnoreCase("master"))
@@ -36,7 +40,7 @@ namespace electrosynth {
     }
 
     juce::Colour getModulationSourceColor(const juce::String& source_name) {
-        if (source_name.startsWithIgnoreCase("env"))
+        if (source_name.startsWithIgnoreCase("env") || source_name.startsWithIgnoreCase("simpleEnv") || source_name.startsWithIgnoreCase("ADEnv"))
             return ShaderColors::kEnvelopeTextColor;
         if (source_name.startsWithIgnoreCase("lfo"))
             return ShaderColors::kLfoTextColor;
@@ -292,6 +296,13 @@ void ModulationModuleSection::handlePopupResult(int result) {
         undo.beginNewTransaction();
         list.appendChild(t,&undo);
     }
+    else if (result == 6 )
+    {
+        juce::ValueTree t(IDs::MODULATOR);
+        t.setProperty(IDs::type, "ADEnv", nullptr);
+        undo.beginNewTransaction();
+        list.appendChild(t,&undo);
+    }
     // else if (result == 5)
     // {
     //     juce::ValueTree t(IDs::MODULATOR);
@@ -375,6 +386,7 @@ void ModulationModuleSection::updateTabs() {
         const int module_index = hasVCATab() ? i - 1 : i;
         const bool is_envelope = !is_default_tab && module_sections[module_index]->getModulatorType().equalsIgnoreCase("env");
         const bool is_simpEnv = !is_default_tab && module_sections[module_index]->getModulatorType().equalsIgnoreCase("simpleEnv");
+        const bool is_ADEnv = !is_default_tab && module_sections[module_index]->getModulatorType().equalsIgnoreCase("ADEnv");
         const bool is_lfo = !is_default_tab && module_sections[module_index]->getModulatorType().equalsIgnoreCase("lfo");
         const bool is_perlNos = !is_default_tab && module_sections[module_index]->getModulatorType().equalsIgnoreCase("perlNos");
         const bool is_simpNos = !is_default_tab && module_sections[module_index]->getModulatorType().equalsIgnoreCase("simpNos");
@@ -413,6 +425,10 @@ void ModulationModuleSection::updateTabs() {
         else if (is_simpEnv)
         {
             label = juce::String("Simple Env ") + juce::String(number);
+        }
+        else if (is_ADEnv)
+        {
+            label = juce::String("AD Env ") + juce::String(number);
         }
         // else if (is_sampHold)
         // {
@@ -476,7 +492,8 @@ PopupItems ModulationModuleSection::createPopupMenu() {
     options.addItem(2, "add LFO" );
     options.addItem(3, "add White Noise");
     options.addItem(4, "add Perlin Noise");
-    options.addItem(5, "add simple Env");
+    options.addItem(5, "add Simple Env");
+    options.addItem(6, "add AD Env");
     //options.addItem(5, "add Sample and Hold");
 
     return options;
@@ -547,7 +564,8 @@ void ModulationModuleSection::moduleAdded(ModulatorBase *newModule) {
 
     const auto modulator_type = module_section->getModulatorType();
     Skin::SectionOverride skin_override = Skin::kNoise;
-    if (modulator_type.equalsIgnoreCase("env")) skin_override = Skin::kEnvelope;
+    if (modulator_type.equalsIgnoreCase("env") || modulator_type.equalsIgnoreCase("simpleEnv")
+        || modulator_type.equalsIgnoreCase("ADEnv")) skin_override = Skin::kEnvelope;
     else if (modulator_type.equalsIgnoreCase("lfo")) skin_override = Skin::kLfo;
     //else if (modulator_type.equalsIgnoreCase("perlNos")) skin_override = Skin::kPerlNos;
 

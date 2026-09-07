@@ -1,5 +1,5 @@
 //
-// Created by Mstthew McWeeney on 9/3/26.
+// Created by Matthew McWeeney on 9/3/26.
 //
 
 #ifndef ELECTORSYNTH_SIMPLEENVMODULEPROCESSOR_H
